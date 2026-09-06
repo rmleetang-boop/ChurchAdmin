@@ -8,6 +8,13 @@
       "when": 1788673432691,
       "tag": "0000_demonic_skrulls",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1788674067917,
+      "tag": "0001_hot_nuke",
+      "breakpoints": true
     }
   ]
 }

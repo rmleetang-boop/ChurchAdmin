@@ -10,3 +10,12 @@ export function formatNaira(amount: number): string {
     maximumFractionDigits: 0,
   }).format(amount);
 }
+
+export function calculateProjectProgress(raised: number, target: number): number {
+  if (target <= 0) return 0;
+  return Math.min(100, Math.max(0, Math.round((raised / target) * 100)));
+}
+
+export function buildContributionReminder(projectTitle: string, paymentLink: string): string {
+  return `Your giving can help ${projectTitle}. Contribute securely here: ${paymentLink}`;
+}

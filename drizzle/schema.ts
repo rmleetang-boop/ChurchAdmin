@@ -1,17 +1,7 @@
 import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 
-/**
- * Core user table backing auth flow.
- * Extend this file with additional tables as your product grows.
- * Columns use camelCase to match both database fields and generated types.
- */
 export const users = mysqlTable("users", {
-  /**
-   * Surrogate primary key. Auto-incremented numeric value managed by the database.
-   * Use this for relations between tables.
-   */
   id: int("id").autoincrement().primaryKey(),
-  /** Manus OAuth identifier (openId) returned from the OAuth callback. Unique per user. */
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
@@ -22,7 +12,67 @@ export const users = mysqlTable("users", {
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
 
+export const churchMembers = mysqlTable("church_members", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  phone: varchar("phone", { length: 32 }),
+  whatsappOptIn: int("whatsappOptIn").default(1).notNull(),
+  emailOptIn: int("emailOptIn").default(1).notNull(),
+  status: mysqlEnum("status", ["visitor", "member", "leader", "inactive"]).default("visitor").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const churchProjects = mysqlTable("church_projects", {
+  id: int("id").autoincrement().primaryKey(),
+  title: varchar("title", { length: 160 }).notNull(),
+  description: text("description"),
+  targetAmount: int("targetAmount").notNull(),
+  raisedAmount: int("raisedAmount").default(0).notNull(),
+  paymentLink: varchar("paymentLink", { length: 500 }),
+  leaderId: int("leaderId").notNull(),
+  status: mysqlEnum("status", ["draft", "active", "completed", "archived"]).default("active").notNull(),
+  deadline: timestamp("deadline"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const projectContributions = mysqlTable("project_contributions", {
+  id: int("id").autoincrement().primaryKey(),
+  projectId: int("projectId").notNull(),
+  memberId: int("memberId"),
+  contributorName: varchar("contributorName", { length: 160 }),
+  amount: int("amount").notNull(),
+  reference: varchar("reference", { length: 120 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const attendanceDeclarations = mysqlTable("attendance_declarations", {
+  id: int("id").autoincrement().primaryKey(),
+  memberId: int("memberId").notNull(),
+  serviceDate: timestamp("serviceDate").notNull(),
+  response: mysqlEnum("response", ["attending", "online", "not_attending", "undecided"]).default("undecided").notNull(),
+  source: mysqlEnum("source", ["app", "email", "whatsapp", "leader"]).default("app").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const communicationCampaigns = mysqlTable("communication_campaigns", {
+  id: int("id").autoincrement().primaryKey(),
+  title: varchar("title", { length: 160 }).notNull(),
+  body: text("body").notNull(),
+  channel: mysqlEnum("channel", ["email", "whatsapp", "both"]).default("both").notNull(),
+  audience: varchar("audience", { length: 120 }).default("active_members").notNull(),
+  paymentLink: varchar("paymentLink", { length: 500 }),
+  scheduledFor: timestamp("scheduledFor"),
+  sentAt: timestamp("sentAt"),
+  createdBy: int("createdBy").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
-
-// TODO: Add your tables here
+export type ChurchProject = typeof churchProjects.$inferSelect;
+export type InsertChurchProject = typeof churchProjects.$inferInsert;
+export type ProjectContribution = typeof projectContributions.$inferSelect;
+export type AttendanceDeclaration = typeof attendanceDeclarations.$inferSelect;
