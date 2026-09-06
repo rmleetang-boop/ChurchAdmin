@@ -102,6 +102,21 @@ export const testimonies = mysqlTable("testimonies", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+export const sermons = mysqlTable("sermons", {
+  id: int("id").autoincrement().primaryKey(),
+  title: varchar("title", { length: 180 }).notNull(),
+  preacher: varchar("preacher", { length: 160 }).notNull(),
+  serviceDate: timestamp("serviceDate").notNull(),
+  audioUrl: varchar("audioUrl", { length: 500 }),
+  videoUrl: varchar("videoUrl", { length: 500 }),
+  transcript: text("transcript"),
+  highlights: text("highlights"),
+  status: mysqlEnum("status", ["recorded", "transcribing", "ready", "distributed"]).default("recorded").notNull(),
+  createdBy: int("createdBy").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 export type ChurchProject = typeof churchProjects.$inferSelect;
@@ -111,3 +126,4 @@ export type AttendanceDeclaration = typeof attendanceDeclarations.$inferSelect;
 export type MemberNotification = typeof memberNotifications.$inferSelect;
 export type PrayerRequest = typeof prayerRequests.$inferSelect;
 export type Testimony = typeof testimonies.$inferSelect;
+export type Sermon = typeof sermons.$inferSelect;

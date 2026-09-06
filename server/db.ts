@@ -1,6 +1,6 @@
 import { desc, eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { attendanceDeclarations, churchProjects, communicationCampaigns, InsertUser, memberNotifications, prayerRequests, projectContributions, testimonies, users } from "../drizzle/schema";
+import { attendanceDeclarations, churchProjects, communicationCampaigns, InsertUser, memberNotifications, prayerRequests, projectContributions, sermons, testimonies, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -122,4 +122,23 @@ export async function listTestimonies() {
 export async function listPrayerRequests() {
   const db = await getDb(); if (!db) return [];
   return db.select().from(prayerRequests).orderBy(desc(prayerRequests.createdAt));
+}
+
+export async function createSermon(input: typeof sermons.$inferInsert) {
+  const db = await getDb(); if (!db) throw new Error("Database is not configured");
+  const result = await db.insert(sermons).values(input);
+  const rows = await db.select().from(sermons).where(eq(sermons.id, Number(result[0].insertId))).limit(1);
+  return rows[0];
+}
+
+export async function listSermons() {
+  const db = await getDb(); if (!db) return [];
+  return db.select().from(sermons).orderBy(desc(sermons.serviceDate));
+}
+
+export async function markSermonDistributed(id: number) {
+  const db = await getDb(); if (!db) throw new Error("Database is not configured");
+  await db.update(sermons).set({ status: "distributed" }).where(eq(sermons.id, id));
+  const rows = await db.select().from(sermons).where(eq(sermons.id, id)).limit(1);
+  return rows[0];
 }

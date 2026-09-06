@@ -22,6 +22,13 @@
       "when": 1788677486695,
       "tag": "0002_classy_agent_zero",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1788686089539,
+      "tag": "0003_oval_whistler",
+      "breakpoints": true
     }
   ]
 }

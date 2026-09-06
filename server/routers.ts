@@ -3,7 +3,10 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { adminProcedure, protectedProcedure, publicProcedure, router } from "./_core/trpc";
-import { addProjectContribution, createAttendanceDeclaration, createChurchProject, createCommunicationCampaign, createPrayerRequest, createTestimony, deleteChurchProject, getChurchProject, listMemberAttendance, listMemberGiving, listMemberNotifications, listMemberPrayerRequests, listPrayerRequests, listTestimonies, listChurchProjects, updateChurchProject } from "./db";
+import { addProjectContribution, createAttendanceDeclaration, createChurchProject, createCommunicationCampaign, createPrayerRequest, createSermon, createTestimony, deleteChurchProject, getChurchProject, listMemberAttendance, listMemberGiving, listMemberNotifications, listMemberPrayerRequests, listPrayerRequests, listSermons, listTestimonies, listChurchProjects, markSermonDistributed, updateChurchProject } from "./db";
+import { storageGetSignedUrl, storagePut } from "./storage";
+import { transcribeAudio } from "./_core/voiceTranscription";
+import { pickSermonHighlights } from "../shared/sermonUtils";
 
 const projectInput = z.object({
   title: z.string().min(2),
@@ -46,6 +49,29 @@ export const appRouter = router({
   admin: router({
     prayerRequests: adminProcedure.query(() => listPrayerRequests()),
     testimonies: adminProcedure.query(() => listTestimonies()),
+  }),
+  sermons: router({
+    list: protectedProcedure.query(() => listSermons()),
+    record: adminProcedure.input(z.object({ title: z.string().min(2), preacher: z.string().min(2), serviceDate: z.date(), audioBase64: z.string().min(10), audioMimeType: z.string().default("audio/webm"), videoUrl: z.string().url().optional().or(z.literal("")), videoBase64: z.string().optional(), videoMimeType: z.string().optional() })).mutation(async ({ input, ctx }) => {
+      const raw = input.audioBase64.replace(/^data:[^;]+;base64,/, "");
+      const audio = Buffer.from(raw, "base64");
+      if (audio.byteLength > 16 * 1024 * 1024) throw new Error("Audio must be 16MB or smaller");
+      const ext = input.audioMimeType.includes("mp4") ? "m4a" : input.audioMimeType.includes("wav") ? "wav" : "webm";
+      const uploaded = await storagePut(`sermons/${ctx.user.id}-${Date.now()}.${ext}`, audio, input.audioMimeType);
+      let savedVideoUrl = input.videoUrl || null;
+      if (input.videoBase64) {
+        const video = Buffer.from(input.videoBase64.replace(/^data:[^;]+;base64,/, ""), "base64");
+        if (video.byteLength > 100 * 1024 * 1024) throw new Error("Video must be 100MB or smaller");
+        const videoUpload = await storagePut(`sermons/${ctx.user.id}-${Date.now()}.video`, video, input.videoMimeType || "video/mp4");
+        savedVideoUrl = videoUpload.url;
+      }
+      const signedUrl = await storageGetSignedUrl(uploaded.key);
+      const transcriptResult = await transcribeAudio({ audioUrl: signedUrl, language: "en", prompt: "Transcribe a church sermon with clear speaker wording and key teachings." });
+      if ("error" in transcriptResult) throw new Error(transcriptResult.error);
+      const segments = pickSermonHighlights(transcriptResult.segments ?? []);
+      return createSermon({ title: input.title, preacher: input.preacher, serviceDate: input.serviceDate, audioUrl: uploaded.url, videoUrl: savedVideoUrl, transcript: transcriptResult.text, highlights: JSON.stringify(segments), status: "ready", createdBy: ctx.user.id });
+    }),
+    distribute: adminProcedure.input(z.object({ id: z.number().int().positive(), channel: z.enum(["email", "whatsapp", "both"]), paymentLink: z.string().url().optional().or(z.literal("")) })).mutation(({ input }) => markSermonDistributed(input.id)),
   }),
   communications: router({
     create: adminProcedure.input(z.object({ title: z.string().min(2), body: z.string().min(2), channel: z.enum(["email", "whatsapp", "both"]), audience: z.string().default("active_members"), paymentLink: z.string().url().optional().or(z.literal("")), scheduledFor: z.date().optional() })).mutation(({ input, ctx }) => createCommunicationCampaign({ ...input, paymentLink: input.paymentLink || null, createdBy: ctx.user.id })),
