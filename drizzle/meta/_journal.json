@@ -15,6 +15,13 @@
       "when": 1788674067917,
       "tag": "0001_hot_nuke",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1788677486695,
+      "tag": "0002_classy_agent_zero",
+      "breakpoints": true
     }
   ]
 }

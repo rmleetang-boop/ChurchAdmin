@@ -1,6 +1,6 @@
 import { desc, eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { attendanceDeclarations, churchProjects, communicationCampaigns, InsertUser, projectContributions, users } from "../drizzle/schema";
+import { attendanceDeclarations, churchProjects, communicationCampaigns, InsertUser, memberNotifications, prayerRequests, projectContributions, testimonies, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -80,4 +80,46 @@ export async function createCommunicationCampaign(input: typeof communicationCam
   const db = await getDb(); if (!db) throw new Error("Database is not configured");
   const result = await db.insert(communicationCampaigns).values(input);
   return { id: Number(result[0].insertId), ...input };
+}
+
+export async function listMemberGiving(memberId: number) {
+  const db = await getDb(); if (!db) return [];
+  return db.select().from(projectContributions).where(eq(projectContributions.memberId, memberId)).orderBy(desc(projectContributions.createdAt));
+}
+
+export async function listMemberAttendance(memberId: number) {
+  const db = await getDb(); if (!db) return [];
+  return db.select().from(attendanceDeclarations).where(eq(attendanceDeclarations.memberId, memberId)).orderBy(desc(attendanceDeclarations.serviceDate));
+}
+
+export async function listMemberNotifications(memberId: number) {
+  const db = await getDb(); if (!db) return [];
+  return db.select().from(memberNotifications).where(eq(memberNotifications.memberId, memberId)).orderBy(desc(memberNotifications.createdAt));
+}
+
+export async function createPrayerRequest(input: typeof prayerRequests.$inferInsert) {
+  const db = await getDb(); if (!db) throw new Error("Database is not configured");
+  const result = await db.insert(prayerRequests).values(input);
+  return { id: Number(result[0].insertId), ...input };
+}
+
+export async function listMemberPrayerRequests(memberId: number) {
+  const db = await getDb(); if (!db) return [];
+  return db.select().from(prayerRequests).where(eq(prayerRequests.memberId, memberId)).orderBy(desc(prayerRequests.createdAt));
+}
+
+export async function createTestimony(input: typeof testimonies.$inferInsert) {
+  const db = await getDb(); if (!db) throw new Error("Database is not configured");
+  const result = await db.insert(testimonies).values(input);
+  return { id: Number(result[0].insertId), ...input };
+}
+
+export async function listTestimonies() {
+  const db = await getDb(); if (!db) return [];
+  return db.select().from(testimonies).orderBy(desc(testimonies.createdAt));
+}
+
+export async function listPrayerRequests() {
+  const db = await getDb(); if (!db) return [];
+  return db.select().from(prayerRequests).orderBy(desc(prayerRequests.createdAt));
 }

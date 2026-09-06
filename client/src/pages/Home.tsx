@@ -1,9 +1,12 @@
 import { useMemo, useState } from "react";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { trpc } from "@/lib/trpc";
 import {
   ArrowDownRight,
   ArrowUpRight,
   Bell,
   BookOpen,
+  Check,
   CalendarDays,
   ChevronDown,
   ChevronRight,
@@ -17,10 +20,13 @@ import {
   Filter,
   FolderKanban,
   HandHeart,
+  HeartHandshake,
   LayoutDashboard,
+  LockKeyhole,
   Mail,
   Menu,
   MessageSquareText,
+  MessageSquareHeart,
   MoreHorizontal,
   Plus,
   Search,
@@ -37,7 +43,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-type Section = "Overview" | "People" | "Attendance" | "Giving" | "Projects" | "Events" | "Communications" | "Departments";
+type Section = "Overview" | "People" | "Attendance" | "Giving" | "Projects" | "Events" | "Communications" | "Departments" | "Care inbox";
 
 const navItems: { label: Section; icon: typeof LayoutDashboard; badge?: string }[] = [
   { label: "Overview", icon: LayoutDashboard },
@@ -48,6 +54,7 @@ const navItems: { label: Section; icon: typeof LayoutDashboard; badge?: string }
   { label: "Events", icon: CalendarDays, badge: "4" },
   { label: "Communications", icon: MessageSquareText },
   { label: "Departments", icon: Users },
+  { label: "Care inbox", icon: HeartHandshake, badge: "4" },
 ];
 
 const members = [
@@ -176,6 +183,23 @@ function DepartmentsView() {
   return <ModuleLayout eyebrow="TEAMS & OWNERSHIP" title="Departments" description="Give every team clarity, a leader, and a simple way to stay aligned." action="Add department" onAction={() => toast.success("Department setup opened")}><div className="department-grid">{departments.map((department) => { const Icon = department.icon; return <div className="department-card" key={department.name}><div className="department-top"><span className="department-icon" style={{ backgroundColor: `${department.color}16`, color: department.color }}><Icon size={19} /></span><button className="icon-button"><MoreHorizontal size={17} /></button></div><h3>{department.name}</h3><p>Led by <strong>{department.lead}</strong></p><div className="department-bottom"><span>{department.count}</span><span>{department.progress}% active</span></div><div className="progress-track"><div style={{ width: `${department.progress}%`, backgroundColor: department.color }} /></div></div>})}<button className="department-card add-department" onClick={() => toast.success("Department setup opened")}><span className="add-circle"><Plus size={19} /></span><strong>Set up a department</strong><span>Create ownership and care teams</span></button></div></ModuleLayout>;
 }
 
+function CareInboxView() {
+  const { user } = useAuth();
+  const prayerQuery = trpc.admin.prayerRequests.useQuery(undefined, { enabled: user?.role === "admin", retry: false });
+  const testimonyQuery = trpc.admin.testimonies.useQuery(undefined, { enabled: user?.role === "admin", retry: false });
+  const [filter, setFilter] = useState("All");
+  const [items, setItems] = useState([
+    { id: 1, kind: "Prayer request", title: "Family health", person: "Amaka Nwosu", body: "Please pray for my mother as she continues her treatment.", status: "New", private: true, time: "Today · 8:46 AM" },
+    { id: 2, kind: "Testimony", title: "God made a way", person: "Samuel Okoro", body: "After months of searching, I received a new job offer and I want to thank the church for praying with me.", status: "Review", private: false, time: "Yesterday · 4:20 PM" },
+    { id: 3, kind: "Prayer request", title: "Wisdom for my family", person: "Grace Mensah", body: "Please keep my family in prayer as we make an important decision.", status: "Praying", private: true, time: "Jun 29 · 7:10 PM" },
+    { id: 4, kind: "Testimony", title: "A peaceful recovery", person: "Esther Bello", body: "I am grateful for a healthy recovery and the support of my small group.", status: "Published", private: false, time: "Jun 27 · 11:32 AM" },
+  ]);
+  const liveItems = [...(prayerQuery.data ?? []).map(item => ({ id: item.id, kind: "Prayer request", title: item.title, person: "Member", body: item.request, status: item.status === "new" ? "New" : item.status === "praying" ? "Praying" : item.status === "answered" ? "Answered" : "Archived", private: Boolean(item.isPrivate), time: new Date(item.createdAt).toLocaleString() })), ...(testimonyQuery.data ?? []).map(item => ({ id: 100000 + item.id, kind: "Testimony", title: item.title, person: "Member", body: item.story, status: item.status === "submitted" ? "Review" : item.status === "published" ? "Published" : item.status, private: !Boolean(item.permissionToShare), time: new Date(item.createdAt).toLocaleString() }))];
+  const visibleItems = liveItems.length > 0 ? liveItems : items;
+  const filtered = filter === "All" ? visibleItems : visibleItems.filter(item => item.kind === filter);
+  return <ModuleLayout eyebrow="CARE & FOLLOW-UP" title="Care inbox" description="Handle every prayer request and testimony with warmth, privacy, and clear follow-through." action="Send care note" onAction={() => toast.success("Care note composer opened", { description: "Choose a member and send a personal message." })}><div className="care-inbox-summary"><div><MessageSquareHeart size={17} /><span><strong>2</strong> new prayer requests</span></div><div><Sparkles size={17} /><span><strong>1</strong> testimony to review</span></div><div><Check size={17} /><span><strong>1</strong> published this month</span></div></div><div className="care-inbox-toolbar"><div><button className={filter === "All" ? "filter-chip active" : "filter-chip"} onClick={() => setFilter("All")}>All</button><button className={filter === "Prayer request" ? "filter-chip active" : "filter-chip"} onClick={() => setFilter("Prayer request")}>Prayer requests</button><button className={filter === "Testimony" ? "filter-chip active" : "filter-chip"} onClick={() => setFilter("Testimony")}>Testimonies</button></div><span>{filtered.length} records</span></div><div className="care-inbox-list">{filtered.map(item => <article className="care-inbox-item" key={item.id}><div className={`care-inbox-kind ${item.kind === "Testimony" ? "testimony-kind" : "prayer-kind"}`}>{item.kind === "Testimony" ? <Sparkles size={16} /> : <MessageSquareHeart size={16} />}</div><div className="care-inbox-body"><div className="care-inbox-title"><div><span className="eyebrow">{item.kind.toUpperCase()} · {item.time}</span><h3>{item.title}</h3></div><span className={`status-badge ${item.status === "Published" ? "status-green" : item.status === "New" ? "status-gold" : "status-gray"}`}>{item.status}</span></div><p>{item.body}</p><div className="care-inbox-footer"><span><Avatar initials={item.person.split(" ").map(part => part[0]).join("")} tone={item.kind === "Testimony" ? "amber" : "indigo"} small />{item.person}</span><span>{item.private ? <><LockKeyhole size={12} /> Private care record</> : <><Users size={12} /> Permission requested</>}</span><button onClick={() => { setItems(current => current.map(record => record.id === item.id ? { ...record, status: item.kind === "Testimony" ? "Published" : "Praying" } : record)); toast.success(item.kind === "Testimony" ? "Testimony marked for sharing" : "Prayer request moved to praying", { description: item.person }); }}>{item.kind === "Testimony" ? "Review testimony" : "Mark praying"}</button></div></div></article>)}</div></ModuleLayout>;
+}
+
 function ModuleLayout({ eyebrow, title, description, action, onAction, children }: { eyebrow: string; title: string; description: string; action: string; onAction: () => void; children: React.ReactNode }) {
   return <section className="module-view"><div className="module-header"><div><div className="eyebrow">{eyebrow}</div><h1>{title}</h1><p>{description}</p></div><button className="button button-primary" onClick={onAction}><Plus size={17} />{action}</button></div>{children}</section>;
 }
@@ -183,7 +207,7 @@ function ModuleLayout({ eyebrow, title, description, action, onAction, children 
 export default function Home() {
   const [activeSection, setActiveSection] = useState<Section>("Overview");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const content = activeSection === "Overview" ? <Overview onNavigate={setActiveSection} /> : activeSection === "People" ? <PeopleView /> : activeSection === "Attendance" ? <AttendanceView /> : activeSection === "Giving" ? <GivingView /> : activeSection === "Projects" ? <ProjectView /> : activeSection === "Events" ? <EventsView /> : activeSection === "Communications" ? <CommunicationsView /> : <DepartmentsView />;
+  const content = activeSection === "Overview" ? <Overview onNavigate={setActiveSection} /> : activeSection === "People" ? <PeopleView /> : activeSection === "Attendance" ? <AttendanceView /> : activeSection === "Giving" ? <GivingView /> : activeSection === "Projects" ? <ProjectView /> : activeSection === "Events" ? <EventsView /> : activeSection === "Communications" ? <CommunicationsView /> : activeSection === "Departments" ? <DepartmentsView /> : <CareInboxView />;
   return <div className="app-shell">
     <aside className={`sidebar ${mobileNavOpen ? "sidebar-open" : ""}`}><div className="brand"><span className="brand-mark"><span /></span><div><strong>ChurchFlow</strong><span>ADMIN CENTER</span></div><button className="mobile-close icon-button" onClick={() => setMobileNavOpen(false)}><X size={18} /></button></div><div className="workspace-switcher"><span className="workspace-avatar">LH</span><div><strong>Living Hope Assembly</strong><span>Central workspace</span></div><ChevronDown size={15} /></div><nav className="main-nav"><span className="nav-label">WORKSPACE</span>{navItems.map(({ label, icon: Icon, badge }) => <button key={label} className={`nav-item ${activeSection === label ? "active" : ""}`} onClick={() => { setActiveSection(label); setMobileNavOpen(false); }}><Icon size={18} strokeWidth={activeSection === label ? 2.1 : 1.8} /><span>{label}</span>{badge && <em>{badge}</em>}</button>)}</nav><div className="sidebar-spacer" /><div className="sidebar-note"><Sparkles size={17} /><div><strong>Care is our system</strong><span>See the people behind the numbers.</span></div></div><button className="nav-item"><Settings2 size={18} /><span>Settings</span></button><div className="sidebar-profile"><Avatar initials="PD" tone="purple" /><div><strong>Pastor Daniel</strong><span>Administrator</span></div><MoreHorizontal size={17} /></div></aside>
     <main className="main-content"><header className="topbar"><button className="mobile-menu icon-button" onClick={() => setMobileNavOpen(true)}><Menu size={21} /></button><div className="breadcrumb"><span>Living Hope Assembly</span><ChevronRight size={14} /><strong>{activeSection}</strong></div><div className="topbar-actions"><button className="global-search" onClick={() => toast.info("Search is ready", { description: "Try searching for a member, event, or giving record." })}><Search size={16} /><span>Search anything</span><kbd><Command size={12} /> K</kbd></button><button className="icon-button notification-button" onClick={() => toast.info("You’re all caught up", { description: "No new notifications." })}><Bell size={18} /><i /></button><div className="topbar-user"><Avatar initials="PD" tone="purple" small /><ChevronDown size={14} /></div></div></header><div className="page-content">{content}</div></main>

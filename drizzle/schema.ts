@@ -70,9 +70,44 @@ export const communicationCampaigns = mysqlTable("communication_campaigns", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
+export const memberNotifications = mysqlTable("member_notifications", {
+  id: int("id").autoincrement().primaryKey(),
+  memberId: int("memberId").notNull(),
+  title: varchar("title", { length: 160 }).notNull(),
+  body: text("body").notNull(),
+  type: mysqlEnum("type", ["message", "event", "giving", "care", "system"]).default("message").notNull(),
+  readAt: timestamp("readAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const prayerRequests = mysqlTable("prayer_requests", {
+  id: int("id").autoincrement().primaryKey(),
+  memberId: int("memberId").notNull(),
+  title: varchar("title", { length: 160 }).notNull(),
+  request: text("request").notNull(),
+  isPrivate: int("isPrivate").default(1).notNull(),
+  status: mysqlEnum("status", ["new", "praying", "answered", "archived"]).default("new").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const testimonies = mysqlTable("testimonies", {
+  id: int("id").autoincrement().primaryKey(),
+  memberId: int("memberId").notNull(),
+  title: varchar("title", { length: 160 }).notNull(),
+  story: text("story").notNull(),
+  permissionToShare: int("permissionToShare").default(0).notNull(),
+  status: mysqlEnum("status", ["submitted", "reviewing", "published", "declined"]).default("submitted").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 export type ChurchProject = typeof churchProjects.$inferSelect;
 export type InsertChurchProject = typeof churchProjects.$inferInsert;
 export type ProjectContribution = typeof projectContributions.$inferSelect;
 export type AttendanceDeclaration = typeof attendanceDeclarations.$inferSelect;
+export type MemberNotification = typeof memberNotifications.$inferSelect;
+export type PrayerRequest = typeof prayerRequests.$inferSelect;
+export type Testimony = typeof testimonies.$inferSelect;
