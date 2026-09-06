@@ -1,6 +1,6 @@
 import { desc, eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { attendanceDeclarations, churchProjects, communicationCampaigns, InsertUser, memberNotifications, prayerRequests, projectContributions, sermons, testimonies, users } from "../drizzle/schema";
+import { attendanceDeclarations, churchBranches, churches, churchProjects, communicationCampaigns, InsertUser, memberNotifications, prayerRequests, projectContributions, sermons, testimonies, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -10,6 +10,16 @@ export async function getDb() {
     try { _db = drizzle(process.env.DATABASE_URL); } catch (error) { console.warn("[Database] Failed to connect:", error); _db = null; }
   }
   return _db;
+}
+
+export async function listChurchNetwork() {
+  const db = await getDb();
+  if (!db) return { churches: [], branches: [] };
+  const [churchRows, branchRows] = await Promise.all([
+    db.select().from(churches).orderBy(churches.name),
+    db.select().from(churchBranches).orderBy(churchBranches.name),
+  ]);
+  return { churches: churchRows, branches: branchRows };
 }
 
 export async function upsertUser(user: InsertUser): Promise<void> {

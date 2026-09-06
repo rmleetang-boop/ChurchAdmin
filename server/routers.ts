@@ -2,8 +2,8 @@ import { z } from "zod";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { adminProcedure, protectedProcedure, publicProcedure, router } from "./_core/trpc";
-import { addProjectContribution, createAttendanceDeclaration, createChurchProject, createCommunicationCampaign, createPrayerRequest, createSermon, createTestimony, deleteChurchProject, getChurchProject, listMemberAttendance, listMemberGiving, listMemberNotifications, listMemberPrayerRequests, listPrayerRequests, listSermons, listTestimonies, listChurchProjects, markSermonDistributed, updateChurchProject } from "./db";
+import { adminProcedure, overseerProcedure, protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { addProjectContribution, createAttendanceDeclaration, createChurchProject, createCommunicationCampaign, createPrayerRequest, createSermon, createTestimony, deleteChurchProject, getChurchProject, listChurchNetwork, listMemberAttendance, listMemberGiving, listMemberNotifications, listMemberPrayerRequests, listPrayerRequests, listSermons, listTestimonies, listChurchProjects, markSermonDistributed, updateChurchProject } from "./db";
 import { storageGetSignedUrl, storagePut } from "./storage";
 import { transcribeAudio } from "./_core/voiceTranscription";
 import { pickSermonHighlights } from "../shared/sermonUtils";
@@ -49,6 +49,9 @@ export const appRouter = router({
   admin: router({
     prayerRequests: adminProcedure.query(() => listPrayerRequests()),
     testimonies: adminProcedure.query(() => listTestimonies()),
+  }),
+  network: router({
+    overview: overseerProcedure.query(() => listChurchNetwork()),
   }),
   sermons: router({
     list: protectedProcedure.query(() => listSermons()),

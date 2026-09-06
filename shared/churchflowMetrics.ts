@@ -3,13 +3,16 @@ export function calculateGrowthPercent(current: number, previous: number): numbe
   return Number((((current - previous) / previous) * 100).toFixed(1));
 }
 
-export function formatNaira(amount: number): string {
-  return new Intl.NumberFormat("en-NG", {
+export function formatRand(amount: number): string {
+  return new Intl.NumberFormat("en-ZA", {
     style: "currency",
-    currency: "NGN",
+    currency: "ZAR",
     maximumFractionDigits: 0,
   }).format(amount);
 }
+
+// Backwards-compatible export for existing callers; new code should use formatRand.
+export const formatNaira = formatRand;
 
 export function calculateProjectProgress(raised: number, target: number): number {
   if (target <= 0) return 0;

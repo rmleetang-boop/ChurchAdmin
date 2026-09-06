@@ -6,15 +6,44 @@ export const users = mysqlTable("users", {
   name: text("name"),
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
-  role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  role: mysqlEnum("role", ["user", "admin", "overseer"]).default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
 
+export const churches = mysqlTable("churches", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 180 }).notNull(),
+  currency: varchar("currency", { length: 3 }).default("ZAR").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const churchBranches = mysqlTable("church_branches", {
+  id: int("id").autoincrement().primaryKey(),
+  churchId: int("churchId").notNull(),
+  name: varchar("name", { length: 180 }).notNull(),
+  code: varchar("code", { length: 32 }).notNull(),
+  city: varchar("city", { length: 120 }),
+  pastorName: varchar("pastorName", { length: 160 }),
+  active: int("active").default(1).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const userBranchAccess = mysqlTable("user_branch_access", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  branchId: int("branchId").notNull(),
+  accessLevel: mysqlEnum("accessLevel", ["pastor", "manager", "overseer"]).default("manager").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
 export const churchMembers = mysqlTable("church_members", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
+  branchId: int("branchId"),
   phone: varchar("phone", { length: 32 }),
   whatsappOptIn: int("whatsappOptIn").default(1).notNull(),
   emailOptIn: int("emailOptIn").default(1).notNull(),
@@ -25,6 +54,7 @@ export const churchMembers = mysqlTable("church_members", {
 
 export const churchProjects = mysqlTable("church_projects", {
   id: int("id").autoincrement().primaryKey(),
+  branchId: int("branchId"),
   title: varchar("title", { length: 160 }).notNull(),
   description: text("description"),
   targetAmount: int("targetAmount").notNull(),
@@ -39,6 +69,7 @@ export const churchProjects = mysqlTable("church_projects", {
 
 export const projectContributions = mysqlTable("project_contributions", {
   id: int("id").autoincrement().primaryKey(),
+  branchId: int("branchId"),
   projectId: int("projectId").notNull(),
   memberId: int("memberId"),
   contributorName: varchar("contributorName", { length: 160 }),
@@ -49,6 +80,7 @@ export const projectContributions = mysqlTable("project_contributions", {
 
 export const attendanceDeclarations = mysqlTable("attendance_declarations", {
   id: int("id").autoincrement().primaryKey(),
+  branchId: int("branchId"),
   memberId: int("memberId").notNull(),
   serviceDate: timestamp("serviceDate").notNull(),
   response: mysqlEnum("response", ["attending", "online", "not_attending", "undecided"]).default("undecided").notNull(),
@@ -59,6 +91,7 @@ export const attendanceDeclarations = mysqlTable("attendance_declarations", {
 
 export const communicationCampaigns = mysqlTable("communication_campaigns", {
   id: int("id").autoincrement().primaryKey(),
+  branchId: int("branchId"),
   title: varchar("title", { length: 160 }).notNull(),
   body: text("body").notNull(),
   channel: mysqlEnum("channel", ["email", "whatsapp", "both"]).default("both").notNull(),
@@ -72,6 +105,7 @@ export const communicationCampaigns = mysqlTable("communication_campaigns", {
 
 export const memberNotifications = mysqlTable("member_notifications", {
   id: int("id").autoincrement().primaryKey(),
+  branchId: int("branchId"),
   memberId: int("memberId").notNull(),
   title: varchar("title", { length: 160 }).notNull(),
   body: text("body").notNull(),
@@ -82,6 +116,7 @@ export const memberNotifications = mysqlTable("member_notifications", {
 
 export const prayerRequests = mysqlTable("prayer_requests", {
   id: int("id").autoincrement().primaryKey(),
+  branchId: int("branchId"),
   memberId: int("memberId").notNull(),
   title: varchar("title", { length: 160 }).notNull(),
   request: text("request").notNull(),
@@ -93,6 +128,7 @@ export const prayerRequests = mysqlTable("prayer_requests", {
 
 export const testimonies = mysqlTable("testimonies", {
   id: int("id").autoincrement().primaryKey(),
+  branchId: int("branchId"),
   memberId: int("memberId").notNull(),
   title: varchar("title", { length: 160 }).notNull(),
   story: text("story").notNull(),
@@ -104,6 +140,7 @@ export const testimonies = mysqlTable("testimonies", {
 
 export const sermons = mysqlTable("sermons", {
   id: int("id").autoincrement().primaryKey(),
+  branchId: int("branchId"),
   title: varchar("title", { length: 180 }).notNull(),
   preacher: varchar("preacher", { length: 160 }).notNull(),
   serviceDate: timestamp("serviceDate").notNull(),
@@ -119,6 +156,9 @@ export const sermons = mysqlTable("sermons", {
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
+export type Church = typeof churches.$inferSelect;
+export type ChurchBranch = typeof churchBranches.$inferSelect;
+export type UserBranchAccess = typeof userBranchAccess.$inferSelect;
 export type ChurchProject = typeof churchProjects.$inferSelect;
 export type InsertChurchProject = typeof churchProjects.$inferInsert;
 export type ProjectContribution = typeof projectContributions.$inferSelect;

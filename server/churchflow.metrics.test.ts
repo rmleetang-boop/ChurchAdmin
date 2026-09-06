@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildContributionReminder, calculateGrowthPercent, calculateProjectProgress, formatNaira } from "../shared/churchflowMetrics";
+import { buildContributionReminder, calculateGrowthPercent, calculateProjectProgress, formatRand } from "../shared/churchflowMetrics";
 
 describe("churchflow metrics", () => {
   it("calculates a rounded growth percentage", () => {
@@ -8,9 +8,9 @@ describe("churchflow metrics", () => {
     expect(calculateGrowthPercent(0, 0)).toBe(0);
   });
 
-  it("formats contribution amounts for the Nigerian locale", () => {
-    expect(formatNaira(6840000)).toContain("6,840,000");
-    expect(formatNaira(75000)).toContain("75,000");
+  it("formats contribution amounts as South African rand", () => {
+    expect(formatRand(6840000)).toMatch(/R.*6.*840.*000/);
+    expect(formatRand(75000)).toMatch(/R.*75.*000/);
   });
 
   it("keeps project progress between zero and one hundred percent", () => {
