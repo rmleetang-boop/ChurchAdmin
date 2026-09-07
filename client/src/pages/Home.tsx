@@ -1,6 +1,13 @@
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
+import PeopleDirectory from "@/components/people/PeopleDirectory";
+import BirthdaysWidget from "@/components/BirthdaysWidget";
+import { AttendanceHeatmap, RetentionAlerts } from "@/components/AttendanceHeatmap";
+import GivingInsights from "@/components/GivingInsights";
+import CommandPalette from "@/components/CommandPalette";
+import VolunteersView from "@/pages/VolunteersView";
+import { MEMBERS, TODAY } from "@/data/demo";
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -22,6 +29,7 @@ import {
   GitBranch,
   HandHeart,
   HeartHandshake,
+  Handshake,
   LayoutDashboard,
   LockKeyhole,
   Mail,
@@ -47,11 +55,11 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-type Section = "Overview" | "People" | "Attendance" | "Giving" | "Projects" | "Events" | "Communications" | "Sermons" | "Departments" | "Care inbox";
+type Section = "Overview" | "People" | "Attendance" | "Giving" | "Projects" | "Events" | "Communications" | "Sermons" | "Departments" | "Volunteers" | "Care inbox";
 
 const navItems: { label: Section; icon: typeof LayoutDashboard; badge?: string }[] = [
   { label: "Overview", icon: LayoutDashboard },
-  { label: "People", icon: UsersRound, badge: "1,248" },
+  { label: "People", icon: UsersRound, badge: String(MEMBERS.length) },
   { label: "Attendance", icon: ClipboardCheck },
   { label: "Giving", icon: WalletCards },
   { label: "Projects", icon: FolderKanban, badge: "3" },
@@ -59,6 +67,7 @@ const navItems: { label: Section; icon: typeof LayoutDashboard; badge?: string }
   { label: "Communications", icon: MessageSquareText },
   { label: "Sermons", icon: Mic, badge: "New" },
   { label: "Departments", icon: Users },
+  { label: "Volunteers", icon: Handshake, badge: "New" },
   { label: "Care inbox", icon: HeartHandshake, badge: "4" },
 ];
 
@@ -130,18 +139,21 @@ function NetworkOverview({ scope }: { scope: number | "global" }) {
   return <section className="panel" style={{ marginBottom: 24 }}><div className="panel-heading"><div><div className="eyebrow">OVERSEER NETWORK VIEW</div><h2>{scope === "global" ? "All church branches" : `${visibleBranches[0]?.name} branch`}</h2></div><span className="status-badge status-green">{visibleBranches.length} {visibleBranches.length === 1 ? "branch" : "branches"}</span></div><div className="summary-strip"><div><span className="summary-label">Members</span><strong>{totals.members.toLocaleString()}</strong></div><div><span className="summary-label">Sunday attendance</span><strong>{totals.attendance.toLocaleString()}</strong></div><div><span className="summary-label">Giving this month</span><strong>{zar(totals.giving)}</strong></div></div><div className="branch-list">{visibleBranches.map(branch => <div className="event-row" key={branch.id}><span className="activity-icon activity-member"><GitBranch size={15} /></span><div className="event-info"><strong>{branch.name} · {branch.city}</strong><span>{branch.pastor} · {branch.members.toLocaleString()} members · {zar(branch.giving)} giving</span></div><span className="status-badge status-green">{Math.round(branch.attendance / branch.members * 100)}% attendance</span></div>)}</div></section>;
 }
 
-function Overview({ onNavigate, scope }: { onNavigate: (section: Section) => void; scope: number | "global" }) {
+function Overview({ onNavigate, scope, onOpenMember }: { onNavigate: (section: Section) => void; scope: number | "global"; onOpenMember: (id: number) => void }) {
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const weekNo = Math.ceil(((TODAY.getTime() - new Date(TODAY.getFullYear(), 0, 1).getTime()) / 86400000 + new Date(TODAY.getFullYear(), 0, 1).getDay() + 1) / 7);
   return <>
     <section className="hero-row">
-      <div><div className="eyebrow">Sunday, June 30, 2024 · Week 26</div><h1>Good morning, Dominique Somwe <span className="wave">✦</span></h1><p className="hero-copy">Here’s the pulse of <strong>Heirs of Promise Sanctuary</strong>. You have a healthy week ahead.</p></div>
+      <div><div className="eyebrow">{TODAY.toLocaleDateString("en-ZA", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} · Week {weekNo}</div><h1>{greeting}, Dominique Somwe <span className="wave">✦</span></h1><p className="hero-copy">Here’s the pulse of <strong>Heirs of Promise Sanctuary</strong>. You have a healthy week ahead.</p></div>
       <div className="hero-actions"><button className="button button-ghost"><Download size={16} />Export report</button><button className="button button-primary" onClick={() => toast.success("Quick record opened", { description: "Choose attendance, giving, member, or event." })}><Plus size={17} />Quick record</button></div>
     </section>
     <NetworkOverview scope={scope} />
     <section className="metrics-grid">
-      <MetricCard icon={Users} label="Total members" value="1,248" change="8.4%" tint="lavender" />
-      <MetricCard icon={ClipboardCheck} label="Sunday attendance" value="864" change="6.2%" tint="mint" />
+      <MetricCard icon={Users} label="Total members" value={MEMBERS.length.toLocaleString()} change="8.4%" tint="lavender" />
+      <MetricCard icon={ClipboardCheck} label="Sunday attendance" value={MEMBERS.filter(m => m.attendance[11]).length.toLocaleString()} change="6.2%" tint="mint" />
       <MetricCard icon={CircleDollarSign} label="Giving this month" value="R6.84M" change="12.8%" tint="peach" />
-      <MetricCard icon={HandHeart} label="Follow-up queue" value="18" change="4.1%" positive={false} tint="sky" />
+      <MetricCard icon={HandHeart} label="Follow-up queue" value={String(MEMBERS.filter(m => m.status === "Needs follow-up").length)} change="4.1%" positive={false} tint="sky" />
     </section>
     <section className="dashboard-grid top-grid">
       <div className="panel attendance-panel">
@@ -155,16 +167,18 @@ function Overview({ onNavigate, scope }: { onNavigate: (section: Section) => voi
       </div>
     </section>
     <section className="dashboard-grid bottom-grid">
-      <div className="panel attention-panel"><div className="panel-heading"><div><div className="eyebrow">PEOPLE TO CARE FOR</div><h2>Needs your attention <span className="count-pill">5</span></h2></div><button className="text-button" onClick={() => onNavigate("People")}>Open people <ChevronRight size={15} /></button></div><div className="attention-list">{members.map((member) => <div className="attention-row" key={member.name}><Avatar initials={member.initials} tone={member.tone} /><div className="person-info"><strong>{member.name}</strong><span>{member.detail}</span></div><span className="person-group">{member.group}</span><button className="row-action" onClick={() => toast.success(`${member.status} task created`, { description: member.name })}>{member.status}</button></div>)}</div></div>
+      <AttendanceHeatmap />
+      <BirthdaysWidget />
+    </section>
+    <section className="dashboard-grid bottom-grid">
+      <RetentionAlerts onOpenMember={onOpenMember} />
       <div className="panel activity-panel"><div className="panel-heading"><div><div className="eyebrow">LIVE LEDGER</div><h2>Recent activity</h2></div><button className="icon-button"><Ellipsis size={18} /></button></div><div className="activity-list"><div className="activity-item"><span className="activity-icon activity-giving"><CircleDollarSign size={15} /></span><p><strong>R185,000 offering</strong> received from Anonymous<span>Today, 9:42 AM</span></p></div><div className="activity-item"><span className="activity-icon activity-member"><UserPlus size={15} /></span><p><strong>Amaka Nwosu</strong> added as a visitor<span>Today, 9:10 AM</span></p></div><div className="activity-item"><span className="activity-icon activity-message"><Send size={15} /></span><p><strong>Welcome message</strong> sent to 12 first-time guests<span>Today, 8:30 AM</span></p></div><div className="activity-item"><span className="activity-icon activity-event"><CalendarDays size={15} /></span><p><strong>Leadership Summit</strong> updated by Miriam<span>Yesterday, 4:20 PM</span></p></div></div></div>
     </section>
   </>;
 }
 
-function PeopleView() {
-  const [query, setQuery] = useState("");
-  const filtered = useMemo(() => members.filter((member) => member.name.toLowerCase().includes(query.toLowerCase())), [query]);
-  return <ModuleLayout eyebrow="PEOPLE DIRECTORY" title="People" description="Know your church family, keep every story current, and make follow-up personal." action="Add person" onAction={() => toast.success("New person form opened")}><div className="toolbar"><div className="search-field"><Search size={17} /><input placeholder="Search people by name..." value={query} onChange={(event) => setQuery(event.target.value)} /></div><button className="button button-ghost"><Filter size={16} />Filters</button><button className="button button-ghost"><Download size={16} />Export</button></div><div className="summary-strip"><div><span className="summary-label">Active members</span><strong>1,248</strong></div><div><span className="summary-label">Visitors this month</span><strong>86</strong></div><div><span className="summary-label">Needs follow-up</span><strong className="text-warm">18</strong></div></div><div className="table-panel"><div className="table-head"><span>Person</span><span>Group</span><span>Last activity</span><span>Status</span><span /></div>{filtered.map((member) => <div className="table-row" key={member.name}><div className="table-person"><Avatar initials={member.initials} tone={member.tone} small /><div><strong>{member.name}</strong><span>{member.detail}</span></div></div><span>{member.group}</span><span className="muted-cell">{member.name === "Amaka Nwosu" ? "Today" : "2 days ago"}</span><span className="status-badge status-green">Active</span><button className="icon-button"><MoreHorizontal size={17} /></button></div>)}</div></ModuleLayout>;
+function PeopleView({ focusMemberId, onFocused }: { focusMemberId: number | null; onFocused: () => void }) {
+  return <ModuleLayout eyebrow="PEOPLE DIRECTORY" title="People" description="Know your church family, keep every story current, and make follow-up personal." action="Add person" onAction={() => toast.success("New person form opened")}><PeopleDirectory focusMemberId={focusMemberId} onFocused={onFocused} /></ModuleLayout>;
 }
 
 function AttendanceView() {
@@ -173,7 +187,7 @@ function AttendanceView() {
 }
 
 function GivingView() {
-  return <ModuleLayout eyebrow="STEWARDSHIP" title="Giving" description="A clear, accountable view of offerings, tithes, projects, and every contribution." action="Record giving" onAction={() => toast.success("Giving entry opened", { description: "Add amount, fund, and contributor details." })}><div className="giving-stat-grid"><div className="giving-stat featured"><span>This month</span><strong>R6.84M</strong><small><ArrowUpRight size={14} />12.8% from May</small></div><div className="giving-stat"><span>Offering</span><strong>R2.24M</strong><small>33% of total</small></div><div className="giving-stat"><span>Tithe</span><strong>R3.76M</strong><small>55% of total</small></div><div className="giving-stat"><span>Projects</span><strong>R840K</strong><small>12% of total</small></div></div><div className="panel table-panel"><div className="panel-heading"><div><div className="eyebrow">RECENT CONTRIBUTIONS</div><h2>Latest giving activity</h2></div><button className="button button-ghost">View report <ChevronRight size={15} /></button></div><div className="table-head giving-head"><span>Contributor</span><span>Fund</span><span>Amount</span><span>Date</span><span>Method</span></div>{givingRows.map((row) => <div className="table-row giving-row" key={`${row.name}-${row.amount}`}><div className="table-person"><Avatar initials={row.initials} tone={row.tone} small /><div><strong>{row.name}</strong><span>Receipt ready</span></div></div><span>{row.type}</span><strong className="amount-cell">{row.amount}</strong><span className="muted-cell">{row.date}</span><span className="method-cell">{row.method}</span></div>)}</div></ModuleLayout>;
+  return <ModuleLayout eyebrow="STEWARDSHIP" title="Giving" description="A clear, accountable view of offerings, tithes, projects, and every contribution." action="Record giving" onAction={() => toast.success("Giving entry opened", { description: "Add amount, fund, and contributor details." })}><div className="giving-stat-grid"><div className="giving-stat featured"><span>This month</span><strong>R6.84M</strong><small><ArrowUpRight size={14} />12.8% from May</small></div><div className="giving-stat"><span>Offering</span><strong>R2.24M</strong><small>33% of total</small></div><div className="giving-stat"><span>Tithe</span><strong>R3.76M</strong><small>55% of total</small></div><div className="giving-stat"><span>Projects</span><strong>R840K</strong><small>12% of total</small></div></div><GivingInsights /><div className="panel table-panel"><div className="panel-heading"><div><div className="eyebrow">RECENT CONTRIBUTIONS</div><h2>Latest giving activity</h2></div><button className="button button-ghost">View report <ChevronRight size={15} /></button></div><div className="table-head giving-head"><span>Contributor</span><span>Fund</span><span>Amount</span><span>Date</span><span>Method</span></div>{givingRows.map((row) => <div className="table-row giving-row" key={`${row.name}-${row.amount}`}><div className="table-person"><Avatar initials={row.initials} tone={row.tone} small /><div><strong>{row.name}</strong><span>Receipt ready</span></div></div><span>{row.type}</span><strong className="amount-cell">{row.amount}</strong><span className="muted-cell">{row.date}</span><span className="method-cell">{row.method}</span></div>)}</div></ModuleLayout>;
 }
 
 type Project = { id: number; title: string; description: string; target: number; raised: number; status: "Active" | "Draft" | "Completed"; deadline: string; leader: string; branch: string; link: string };
@@ -298,14 +312,32 @@ function ModuleLayout({ eyebrow, title, description, action, onAction, children 
   return <section className="module-view"><div className="module-header"><div><div className="eyebrow">{eyebrow}</div><h1>{title}</h1><p>{description}</p></div><button className="button button-primary" onClick={onAction}><Plus size={17} />{action}</button></div>{children}</section>;
 }
 
+function VolunteersPage() {
+  return <ModuleLayout eyebrow="SERVING TOGETHER" title="Volunteers" description="Every team, every Sunday, every role covered — with reminders that make confirming effortless." action="Add volunteer" onAction={() => toast.success("Volunteer form opened")}><VolunteersView /></ModuleLayout>;
+}
+
 export default function Home() {
   const [activeSection, setActiveSection] = useState<Section>("Overview");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [scope, setScope] = useState<number | "global">("global");
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [focusMemberId, setFocusMemberId] = useState<number | null>(null);
   const selectedBranch = scope === "global" ? null : branches.find(branch => branch.id === scope);
-  const content = activeSection === "Overview" ? <Overview onNavigate={setActiveSection} scope={scope} /> : activeSection === "People" ? <PeopleView /> : activeSection === "Attendance" ? <AttendanceView /> : activeSection === "Giving" ? <GivingView /> : activeSection === "Projects" ? <ProjectView /> : activeSection === "Events" ? <EventsView /> : activeSection === "Communications" ? <CommunicationsView /> : activeSection === "Sermons" ? <SermonsView /> : activeSection === "Departments" ? <DepartmentsView /> : <CareInboxView />;
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setPaletteOpen(v => !v); } };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  const openMember = useCallback((id: number) => { setFocusMemberId(id); setActiveSection("People"); }, []);
+  const navigate = useCallback((s: string) => setActiveSection(s as Section), []);
+  const clearFocus = useCallback(() => setFocusMemberId(null), []);
+
+  const content = activeSection === "Overview" ? <Overview onNavigate={setActiveSection} scope={scope} onOpenMember={openMember} /> : activeSection === "People" ? <PeopleView focusMemberId={focusMemberId} onFocused={clearFocus} /> : activeSection === "Attendance" ? <AttendanceView /> : activeSection === "Giving" ? <GivingView /> : activeSection === "Projects" ? <ProjectView /> : activeSection === "Events" ? <EventsView /> : activeSection === "Communications" ? <CommunicationsView /> : activeSection === "Sermons" ? <SermonsView /> : activeSection === "Departments" ? <DepartmentsView /> : activeSection === "Volunteers" ? <VolunteersPage /> : <CareInboxView />;
   return <div className="app-shell">
+    <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} sections={navItems.map(n => n.label)} onNavigate={navigate} onOpenMember={openMember} />
     <aside className={`sidebar ${mobileNavOpen ? "sidebar-open" : ""}`}><div className="brand"><span className="brand-mark"><span /></span><div><strong>ChurchFlow</strong><span>ADMIN CENTER</span></div><button className="mobile-close icon-button" onClick={() => setMobileNavOpen(false)}><X size={18} /></button></div><div className="workspace-switcher"><span className="workspace-avatar">HP</span><div><strong>Heirs of Promise Sanctuary</strong><span>5-branch network</span></div><ChevronDown size={15} /></div><nav className="main-nav"><span className="nav-label">WORKSPACE</span>{navItems.map(({ label, icon: Icon, badge }) => <button key={label} className={`nav-item ${activeSection === label ? "active" : ""}`} onClick={() => { setActiveSection(label); setMobileNavOpen(false); }}><Icon size={18} strokeWidth={activeSection === label ? 2.1 : 1.8} /><span>{label}</span>{badge && <em>{badge}</em>}</button>)}</nav><div className="sidebar-spacer" /><div className="sidebar-note"><Sparkles size={17} /><div><strong>Care is our system</strong><span>See the people behind the numbers.</span></div></div><button className="nav-item"><Settings2 size={18} /><span>Settings</span></button><div className="sidebar-profile"><Avatar initials="DS" tone="purple" /><div><strong>Dominique Somwe</strong><span>Administrator</span></div><MoreHorizontal size={17} /></div></aside>
-    <main className="main-content"><header className="topbar"><button className="mobile-menu icon-button" onClick={() => setMobileNavOpen(true)}><Menu size={21} /></button><div className="breadcrumb"><span>Heirs of Promise Sanctuary</span><ChevronRight size={14} /><strong>{selectedBranch?.name ?? "Global view"}</strong><ChevronRight size={14} /><strong>{activeSection}</strong></div><div className="topbar-actions"><label className="select-button" aria-label="Choose branch scope"><GitBranch size={15} /><select value={scope} onChange={event => setScope(event.target.value === "global" ? "global" : Number(event.target.value))}><option value="global">All branches</option>{branches.map(branch => <option key={branch.id} value={branch.id}>{branch.name} branch</option>)}</select></label><button className="global-search" onClick={() => toast.info("Search is ready", { description: "Try searching for a member, event, or giving record." })}><Search size={16} /><span>Search anything</span><kbd><Command size={12} /> K</kbd></button><button className="icon-button notification-button" onClick={() => toast.info("You’re all caught up", { description: "No new notifications." })}><Bell size={18} /><i /></button><div className="topbar-user"><Avatar initials="DS" tone="purple" small /><ChevronDown size={14} /></div></div></header><div className="page-content">{content}</div></main>
+    <main className="main-content"><header className="topbar"><button className="mobile-menu icon-button" onClick={() => setMobileNavOpen(true)}><Menu size={21} /></button><div className="breadcrumb"><span>Heirs of Promise Sanctuary</span><ChevronRight size={14} /><strong>{selectedBranch?.name ?? "Global view"}</strong><ChevronRight size={14} /><strong>{activeSection}</strong></div><div className="topbar-actions"><label className="select-button" aria-label="Choose branch scope"><GitBranch size={15} /><select value={scope} onChange={event => setScope(event.target.value === "global" ? "global" : Number(event.target.value))}><option value="global">All branches</option>{branches.map(branch => <option key={branch.id} value={branch.id}>{branch.name} branch</option>)}</select></label><button className="global-search" data-testid="global-search-btn" onClick={() => setPaletteOpen(true)}><Search size={16} /><span>Search anything</span><kbd><Command size={12} /> K</kbd></button><button className="icon-button notification-button" onClick={() => toast.info("You’re all caught up", { description: "No new notifications." })}><Bell size={18} /><i /></button><div className="topbar-user"><Avatar initials="DS" tone="purple" small /><ChevronDown size={14} /></div></div></header><div className="page-content">{content}</div></main>
   </div>;
 }
