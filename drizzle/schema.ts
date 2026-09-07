@@ -139,6 +139,15 @@ export const prayerRequests = mysqlTable("prayer_requests", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+export const prayerReplies = mysqlTable("prayer_replies", {
+  id: int("id").autoincrement().primaryKey(),
+  prayerRequestId: int("prayerRequestId").notNull(),
+  leaderId: int("leaderId").notNull(),
+  leaderName: varchar("leaderName", { length: 160 }),
+  message: text("message").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
 export const testimonies = mysqlTable("testimonies", {
   id: int("id").autoincrement().primaryKey(),
   branchId: int("branchId"),
@@ -180,5 +189,6 @@ export type ProjectContribution = typeof projectContributions.$inferSelect;
 export type AttendanceDeclaration = typeof attendanceDeclarations.$inferSelect;
 export type MemberNotification = typeof memberNotifications.$inferSelect;
 export type PrayerRequest = typeof prayerRequests.$inferSelect;
+export type PrayerReply = typeof prayerReplies.$inferSelect;
 export type Testimony = typeof testimonies.$inferSelect;
 export type Sermon = typeof sermons.$inferSelect;

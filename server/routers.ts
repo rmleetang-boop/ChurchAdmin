@@ -3,7 +3,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { adminProcedure, overseerProcedure, protectedProcedure, publicProcedure, router } from "./_core/trpc";
-import { addProjectContribution, createAttendanceDeclaration, createChurchProject, createCommunicationCampaign, createDepartment, createPrayerRequest, createSermon, createTestimony, deleteChurchProject, getChurchProject, listChurchNetwork, listDepartments, listMemberAttendance, listMemberGiving, listMemberNotifications, listMemberPrayerRequests, listPrayerRequests, listSermons, listTestimonies, listChurchProjects, markSermonDistributed, updateChurchProject } from "./db";
+import { addProjectContribution, createAttendanceDeclaration, createChurchProject, createCommunicationCampaign, createDepartment, createPrayerRequest, createSermon, createTestimony, deleteChurchProject, getChurchProject, listChurchNetwork, listDepartments, listMemberAttendance, listMemberGiving, listMemberNotifications, listMemberPrayerRequests, listPrayerReplies, listPrayerRequests, listSermons, listTestimonies, listChurchProjects, markSermonDistributed, replyToPrayerRequest, updateChurchProject } from "./db";
 import { storageGetSignedUrl, storagePut } from "./storage";
 import { transcribeAudio } from "./_core/voiceTranscription";
 import { pickSermonHighlights } from "../shared/sermonUtils";
@@ -42,12 +42,21 @@ export const appRouter = router({
   member: router({
     givingHistory: protectedProcedure.query(({ ctx }) => listMemberGiving(ctx.user.id)),
     notifications: protectedProcedure.query(({ ctx }) => listMemberNotifications(ctx.user.id)),
-    prayerRequests: protectedProcedure.query(({ ctx }) => listMemberPrayerRequests(ctx.user.id)),
+    prayerRequests: protectedProcedure.query(async ({ ctx }) => {
+      const requests = await listMemberPrayerRequests(ctx.user.id);
+      const replies = await listPrayerReplies(requests.map(r => r.id));
+      return requests.map(r => ({ ...r, replies: replies.filter(x => x.prayerRequestId === r.id).map(x => ({ id: x.id, message: x.message, leaderName: x.leaderName, createdAt: x.createdAt })) }));
+    }),
     submitPrayer: protectedProcedure.input(z.object({ title: z.string().min(2), request: z.string().min(5), isPrivate: z.boolean().default(true), isAnonymous: z.boolean().default(false) })).mutation(({ input, ctx }) => createPrayerRequest({ title: input.title, request: input.request, memberId: ctx.user.id, isPrivate: input.isAnonymous || input.isPrivate ? 1 : 0, isAnonymous: input.isAnonymous ? 1 : 0 })),
     submitTestimony: protectedProcedure.input(z.object({ title: z.string().min(2), story: z.string().min(10), permissionToShare: z.boolean().default(false) })).mutation(({ input, ctx }) => createTestimony({ ...input, memberId: ctx.user.id, permissionToShare: input.permissionToShare ? 1 : 0 })),
   }),
   admin: router({
-    prayerRequests: adminProcedure.query(async () => (await listPrayerRequests()).map(item => item.isAnonymous ? { ...item, memberId: 0 } : item)),
+    prayerRequests: adminProcedure.query(async () => {
+      const requests = await listPrayerRequests();
+      const replies = await listPrayerReplies(requests.map(r => r.id));
+      return requests.map(item => ({ ...item, memberId: item.isAnonymous ? 0 : item.memberId, replies: replies.filter(x => x.prayerRequestId === item.id).map(x => ({ id: x.id, message: x.message, leaderName: x.leaderName, createdAt: x.createdAt })) }));
+    }),
+    replyToPrayer: adminProcedure.input(z.object({ id: z.number().int().positive(), message: z.string().min(2).max(2000), markPraying: z.boolean().default(true) })).mutation(({ input, ctx }) => replyToPrayerRequest({ prayerRequestId: input.id, leaderId: ctx.user.id, leaderName: ctx.user.name, message: input.message, markPraying: input.markPraying })),
     testimonies: adminProcedure.query(() => listTestimonies()),
     departments: router({
       list: adminProcedure.input(z.object({ branchId: z.number().int().positive().optional() }).optional()).query(({ input }) => listDepartments(input?.branchId)),

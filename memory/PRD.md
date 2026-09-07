@@ -37,3 +37,8 @@ Node 22 + Express + tRPC + Drizzle (MySQL) server, Vite/React 19 client, pnpm 10
 - Schema: `prayer_requests.isAnonymous` (migration `drizzle/0006_round_leper_queen.sql`). Run `pnpm db:push` against the DB when DATABASE_URL is available.
 - tRPC `member.submitPrayer` accepts `isAnonymous` (forces private). `admin.prayerRequests` redacts `memberId` (→ 0) for anonymous rows.
 - Member app: "Send anonymously" checkbox + explainer + Anonymous badge on own requests. Admin Care inbox: "Anonymous member" with badge, "Identity hidden by request", and anonymous count in summary.
+
+## Prayer replies (2026-09-07, session 4)
+- New table `prayer_replies` (migration `0007_needy_grandmaster.sql`). `admin.replyToPrayer` inserts reply, creates a `member_notifications` (type care) row for the request owner server-side (leader never sees memberId for anonymous), auto-moves status new→praying. `admin.prayerRequests` / `member.prayerRequests` now include `replies[]`.
+- Care inbox extracted to `client/src/components/CareInbox.tsx`: "Send encouragement" → inline composer with quick replies, privacy note for anonymous, reply thread bubbles, "awaiting a reply" counter.
+- Member app: reply bubbles under each request + Care-type notification.

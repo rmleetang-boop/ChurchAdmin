@@ -50,6 +50,13 @@
       "when": 1788812373898,
       "tag": "0006_round_leper_queen",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1788812882719,
+      "tag": "0007_needy_grandmaster",
+      "breakpoints": true
     }
   ]
 }

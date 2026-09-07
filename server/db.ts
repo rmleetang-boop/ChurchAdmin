@@ -1,6 +1,6 @@
-import { desc, eq, sql } from "drizzle-orm";
+import { desc, eq, inArray, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { attendanceDeclarations, churchBranches, churches, churchProjects, communicationCampaigns, departments, InsertDepartment, InsertUser, memberNotifications, prayerRequests, projectContributions, sermons, testimonies, users } from "../drizzle/schema";
+import { attendanceDeclarations, churchBranches, churches, churchProjects, communicationCampaigns, departments, InsertDepartment, InsertUser, memberNotifications, prayerReplies, prayerRequests, projectContributions, sermons, testimonies, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -148,6 +148,21 @@ export async function listTestimonies() {
 export async function listPrayerRequests() {
   const db = await getDb(); if (!db) return [];
   return db.select().from(prayerRequests).orderBy(desc(prayerRequests.createdAt));
+}
+
+export async function listPrayerReplies(requestIds: number[]) {
+  const db = await getDb(); if (!db || requestIds.length === 0) return [];
+  return db.select().from(prayerReplies).where(inArray(prayerReplies.prayerRequestId, requestIds)).orderBy(prayerReplies.createdAt);
+}
+
+export async function replyToPrayerRequest(input: { prayerRequestId: number; leaderId: number; leaderName?: string | null; message: string; markPraying: boolean }) {
+  const db = await getDb(); if (!db) throw new Error("Database is not configured");
+  const [request] = await db.select().from(prayerRequests).where(eq(prayerRequests.id, input.prayerRequestId)).limit(1);
+  if (!request) throw new Error("Prayer request not found");
+  const result = await db.insert(prayerReplies).values({ prayerRequestId: input.prayerRequestId, leaderId: input.leaderId, leaderName: input.leaderName ?? null, message: input.message });
+  await db.insert(memberNotifications).values({ memberId: request.memberId, branchId: request.branchId, type: "care", title: "A reply to your prayer request", body: input.message });
+  if (input.markPraying && request.status === "new") await db.update(prayerRequests).set({ status: "praying" }).where(eq(prayerRequests.id, request.id));
+  return { id: Number(result[0].insertId), prayerRequestId: input.prayerRequestId, message: input.message, leaderName: input.leaderName ?? null, createdAt: new Date() };
 }
 
 export async function createSermon(input: typeof sermons.$inferInsert) {
