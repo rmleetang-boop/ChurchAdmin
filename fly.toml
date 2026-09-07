@@ -1,5 +1,5 @@
-# Replace this with your globally unique Fly app name before running `fly launch` or `fly deploy`.
-app = "churchflow-admin"
+# Fly application for the ChurchAdmin deployment.
+app = "churchadmin"
 primary_region = "iad"
 
 [build]
