@@ -4,7 +4,7 @@ ENV COREPACK_HOME=/tmp/corepack
 RUN corepack enable && corepack prepare pnpm@10.4.1 --activate
 
 WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml patches ./
 RUN pnpm install --frozen-lockfile
 
 COPY . .
@@ -27,7 +27,7 @@ ENV NODE_ENV=production \
     PORT=3000
 
 WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml patches ./
 RUN corepack enable && corepack prepare pnpm@10.4.1 --activate \
     && pnpm install --prod --frozen-lockfile \
     && pnpm store prune
