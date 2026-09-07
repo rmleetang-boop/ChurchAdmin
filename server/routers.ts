@@ -43,11 +43,11 @@ export const appRouter = router({
     givingHistory: protectedProcedure.query(({ ctx }) => listMemberGiving(ctx.user.id)),
     notifications: protectedProcedure.query(({ ctx }) => listMemberNotifications(ctx.user.id)),
     prayerRequests: protectedProcedure.query(({ ctx }) => listMemberPrayerRequests(ctx.user.id)),
-    submitPrayer: protectedProcedure.input(z.object({ title: z.string().min(2), request: z.string().min(5), isPrivate: z.boolean().default(true) })).mutation(({ input, ctx }) => createPrayerRequest({ ...input, memberId: ctx.user.id, isPrivate: input.isPrivate ? 1 : 0 })),
+    submitPrayer: protectedProcedure.input(z.object({ title: z.string().min(2), request: z.string().min(5), isPrivate: z.boolean().default(true), isAnonymous: z.boolean().default(false) })).mutation(({ input, ctx }) => createPrayerRequest({ title: input.title, request: input.request, memberId: ctx.user.id, isPrivate: input.isAnonymous || input.isPrivate ? 1 : 0, isAnonymous: input.isAnonymous ? 1 : 0 })),
     submitTestimony: protectedProcedure.input(z.object({ title: z.string().min(2), story: z.string().min(10), permissionToShare: z.boolean().default(false) })).mutation(({ input, ctx }) => createTestimony({ ...input, memberId: ctx.user.id, permissionToShare: input.permissionToShare ? 1 : 0 })),
   }),
   admin: router({
-    prayerRequests: adminProcedure.query(() => listPrayerRequests()),
+    prayerRequests: adminProcedure.query(async () => (await listPrayerRequests()).map(item => item.isAnonymous ? { ...item, memberId: 0 } : item)),
     testimonies: adminProcedure.query(() => listTestimonies()),
     departments: router({
       list: adminProcedure.input(z.object({ branchId: z.number().int().positive().optional() }).optional()).query(({ input }) => listDepartments(input?.branchId)),

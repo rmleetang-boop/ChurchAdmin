@@ -43,6 +43,13 @@
       "when": 1788748037124,
       "tag": "0005_blushing_namora",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1788812373898,
+      "tag": "0006_round_leper_queen",
+      "breakpoints": true
     }
   ]
 }

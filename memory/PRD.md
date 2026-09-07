@@ -32,3 +32,8 @@ Node 22 + Express + tRPC + Drizzle (MySQL) server, Vite/React 19 client, pnpm 10
 ## Backlog
 - Wire People/Volunteers/Giving to real MySQL via tRPC once DATABASE_URL is provided.
 - Fly secrets (DATABASE_URL, JWT_SECRET, OAUTH_*) still unset.
+
+## Anonymous prayer requests (2026-09-07, session 3)
+- Schema: `prayer_requests.isAnonymous` (migration `drizzle/0006_round_leper_queen.sql`). Run `pnpm db:push` against the DB when DATABASE_URL is available.
+- tRPC `member.submitPrayer` accepts `isAnonymous` (forces private). `admin.prayerRequests` redacts `memberId` (→ 0) for anonymous rows.
+- Member app: "Send anonymously" checkbox + explainer + Anonymous badge on own requests. Admin Care inbox: "Anonymous member" with badge, "Identity hidden by request", and anonymous count in summary.

@@ -133,6 +133,7 @@ export const prayerRequests = mysqlTable("prayer_requests", {
   title: varchar("title", { length: 160 }).notNull(),
   request: text("request").notNull(),
   isPrivate: int("isPrivate").default(1).notNull(),
+  isAnonymous: int("isAnonymous").default(0).notNull(),
   status: mysqlEnum("status", ["new", "praying", "answered", "archived"]).default("new").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

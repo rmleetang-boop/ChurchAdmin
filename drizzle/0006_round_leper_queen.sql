@@ -1,0 +1,1 @@
+ALTER TABLE `prayer_requests` ADD `isAnonymous` int DEFAULT 0 NOT NULL;
