@@ -1,11 +1,11 @@
 {
-  "name": "ChurchFlow Member App",
-  "short_name": "ChurchFlow",
+  "name": "Heirs of Promise Sanctuary",
+  "short_name": "Heirs of Promise",
   "description": "Stay connected to your church family, declare attendance, and give with confidence.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f7f7f5",
-  "theme_color": "#111a2d",
-  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "orientation": "any",
   "icons": []
 }

@@ -78,3 +78,46 @@ Latest user instruction: "No testing needed for now". No further testing was per
 - P1: When requested, verify real v1-to-v2 worker migration, offline/reconnect flow, script-download failure recovery, and API cache exclusion; add automated regression coverage.
 - P2: Add lightweight loading-failure monitoring so blank-screen errors are visible to maintainers.
 - Existing database/OAuth setup and feature backlogs above remain outside this bug-fix scope.
+
+## White dashboard and department feature briefs (2026-09-07, current session)
+
+### User request and final choices
+- "Use Pastor Domique Somwe. Use Congolese names and South African names as sample data. Have a white background instead."
+- User supplied a detailed modular mobile-fintech dashboard reference: greeting, circular score, thin trend graph, four-column metrics, goal-progress card, recommendation card, four quick actions and five-item bottom navigation. Adapt it to the church app's functionality, with full, proportional phone and desktop layouts; do not create a phone mockup or a finance app.
+- Dashboard focus confirmed: "Yes—church health, attendance trends, giving goals, follow-up alerts, and ministry quick actions".
+- Department requirement changed from AI generation to: "Rather than ai, they can define the features needed and dev team will update the platform."
+- FINAL DECISION: no AI generation, no OpenAI integration, no API key needed. Users write feature briefs; the development team reviews/builds them separately.
+- Latest user instruction: "No testing needed". Stopped further verification immediately; do not start additional testing unless requested.
+
+### Architecture decisions
+- Preserve existing React 19 / Vite + Node/Express/tRPC + Drizzle/MySQL stack. No new dependencies or AI services.
+- Existing authenticated administrator procedures protect shared department changes. No public administrator bypass was added.
+- Existing app is unauthenticated/sample without database/OAuth configuration. Sample department briefs persist in the current browser only; the UI explicitly explains this and offers a Markdown export to share with the development team.
+- Authenticated shared department functionality uses the existing MySQL connection once configured and migrated. Missing database/OAuth configuration was not changed in this task.
+- Adopted user's supplied design direction directly; no design-agent defaults. White background, sans-serif typography, semantic accent tokens, light layered cards, responsive grids and safe-area-aware mobile navigation. No fake OS status bar or phone frame inside the app.
+
+### Implemented
+- New `client/src/components/dashboard/DashboardShell.tsx`: white desktop sidebar, mobile navigation dialog, five-item bottom navigation, working route links, branch selector, search, notifications shortcuts and pastor profile. Exact name is centralized in `data/navigation.ts` as **Pastor Domique Somwe**.
+- New `pages/ChurchOverview.tsx`, `components/dashboard/PulseChart.tsx`, `data/dashboardMetrics.ts`: branch-aware church pulse ring with calculation explanation, attendance sparkline and 6/12-week chart, four summary metrics, giving-goal card, care recommendation, four ministry shortcuts, upcoming events, member follow-up/profile links, branch snapshot and CSV overview export. Dashboard values are derived consistently from the existing sample member/pledge data.
+- Each admin section now has its own URL: `/`, `/people`, `/attendance`, `/giving`, `/projects`, `/events`, `/communications`, `/sermons`, `/departments`, `/volunteers`, `/care`. `/member` remains a separate experience. Invalid routes retain NotFound behavior.
+- `data/demo.ts`: replaced Nigerian/Ghanaian/mixed name pools with paired Congolese and South African name pools; updated names in giving, projects, care, member greeting/notifications and sermons. Removed superseded dashboard/department implementations and their old names from Home.tsx.
+- White theme applied across existing views, dialogs, member app, loading/retry screen, offline page and manifest. New styles: `styles/light-theme.css`, `styles/dashboard.css`, `styles/departments.css`. Service-worker cache advanced to v3 so the white offline screen replaces previously cached versions.
+- `pages/DepartmentsPage.tsx`, `components/departments/*`, `hooks/useDepartmentWorkspace.ts`, `data/departmentSamples.ts`: department cards, branch filtering, search, two-step create form, multiple free-text feature briefs with priorities, add requests to existing departments, request tracker/filter, editable development status/team notes, Markdown brief export. UI clearly says statuses do not automatically build or activate features. Samples persist with validation and error handling; storage failures do not report false success.
+- `shared/departmentFeatures.ts`: shared input validation and request-status types.
+- `server/departmentWorkspace.ts`, `server/routers.ts`: administrator-only list/create/add-feature/update-feature procedures, atomic department-and-requests transaction, duplicate department validation, missing-record errors and database configuration errors.
+- `drizzle/schema.ts`: department description field and `department_feature_requests` table with foreign key and status/priority fields. Generated migration `drizzle/0008_mature_callisto.sql` and matching Drizzle metadata. Migration has NOT been applied (no DATABASE_URL).
+- `drizzle.config.ts` now permits offline schema generation without invented credentials; actual migrations still require database credentials.
+- Minor resilience improvement: the existing auth hook no longer crashes rendering when browser localStorage is unavailable. No authentication flow or credentials changed.
+
+### Verification already performed before the user stopped testing
+- TypeScript check and production build passed after the latest code changes.
+- Browser visual review showed the white dashboard and department workspace at 1920px; phone/tablet iframe reviews at 390px and 820px showed matching document/viewport widths (no horizontal page overflow). Mobile department form was visually reviewed.
+- No testing agent, full new-feature regression suite, or live MySQL persistence check was run. Department creation/status/export end-to-end flows have not received comprehensive verification.
+- Preview Node services are running the latest build. No update was made to the public Fly site.
+- See `memory/test_credentials.md`: no accounts or keys created; sample mode does not require sign-in.
+
+### Prioritized backlog / next tasks
+- P0: When the user wants shared department requests, provide the existing MySQL/OAuth configuration and apply migration 0008; keep the current browser-only sample behavior explicit until then.
+- P1: Apply the updated code through the user's existing live-site workflow when authorized. The public Fly site has not been updated in this session.
+- P1: Only when requested, exercise the full department-create/request/status/export flow and wider device/route regression coverage; verify authenticated API persistence against MySQL.
+- P2: Add notifications for department leaders when the development team changes a request's status.

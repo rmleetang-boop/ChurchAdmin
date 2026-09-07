@@ -45,9 +45,23 @@ export const departments = mysqlTable("departments", {
   branchId: int("branchId").notNull(),
   name: varchar("name", { length: 160 }).notNull(),
   leadName: varchar("leadName", { length: 160 }),
+  description: text("description"),
   memberCount: int("memberCount").default(0).notNull(),
   color: varchar("color", { length: 16 }).default("#6958d9").notNull(),
   active: int("active").default(1).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const departmentFeatureRequests = mysqlTable("department_feature_requests", {
+  id: int("id").autoincrement().primaryKey(),
+  departmentId: int("departmentId").notNull().references(() => departments.id, { onDelete: "cascade" }),
+  title: varchar("title", { length: 120 }).notNull(),
+  description: text("description").notNull(),
+  priority: mysqlEnum("priority", ["low", "medium", "high"]).default("medium").notNull(),
+  status: mysqlEnum("status", ["submitted", "in_review", "planned", "in_progress", "delivered"]).default("submitted").notNull(),
+  teamNotes: text("teamNotes"),
+  requestedBy: int("requestedBy").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

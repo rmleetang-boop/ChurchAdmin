@@ -1,4 +1,4 @@
-const CACHE_NAME = "churchflow-shell-v2";
+const CACHE_NAME = "churchflow-shell-v3";
 const OFFLINE_PAGE = "/offline.html";
 
 self.addEventListener("install", event => {

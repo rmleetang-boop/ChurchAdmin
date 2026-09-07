@@ -7,6 +7,8 @@ import { addProjectContribution, createAttendanceDeclaration, createChurchProjec
 import { storageGetSignedUrl, storagePut } from "./storage";
 import { transcribeAudio } from "./_core/voiceTranscription";
 import { pickSermonHighlights } from "../shared/sermonUtils";
+import { departmentInput, featureInput, FEATURE_STATUSES } from "../shared/departmentFeatures";
+import { addDepartmentFeature, createDepartmentWorkspace, listDepartmentWorkspaces, updateDepartmentFeature } from "./departmentWorkspace";
 
 const projectInput = z.object({
   title: z.string().min(2),
@@ -59,6 +61,10 @@ export const appRouter = router({
     replyToPrayer: adminProcedure.input(z.object({ id: z.number().int().positive(), message: z.string().min(2).max(2000), markPraying: z.boolean().default(true) })).mutation(({ input, ctx }) => replyToPrayerRequest({ prayerRequestId: input.id, leaderId: ctx.user.id, leaderName: ctx.user.name, message: input.message, markPraying: input.markPraying })),
     testimonies: adminProcedure.query(() => listTestimonies()),
     departments: router({
+      workspace: adminProcedure.query(() => listDepartmentWorkspaces()),
+      createWithFeatures: adminProcedure.input(departmentInput).mutation(({ input, ctx }) => createDepartmentWorkspace(input, ctx.user.id)),
+      addFeature: adminProcedure.input(z.object({ departmentId: z.number().int().positive(), feature: featureInput })).mutation(({ input, ctx }) => addDepartmentFeature(input.departmentId, input.feature, ctx.user.id)),
+      updateFeature: adminProcedure.input(z.object({ id: z.number().int().positive(), status: z.enum(FEATURE_STATUSES), teamNotes: z.string().trim().max(2000) })).mutation(({ input }) => updateDepartmentFeature(input.id, input.status, input.teamNotes)),
       list: adminProcedure.input(z.object({ branchId: z.number().int().positive().optional() }).optional()).query(({ input }) => listDepartments(input?.branchId)),
       create: adminProcedure.input(z.object({ branchId: z.number().int().positive(), name: z.string().min(2), leadName: z.string().optional(), memberCount: z.number().int().nonnegative().default(0), color: z.string().default("#6958d9") })).mutation(({ input }) => createDepartment(input)),
     }),

@@ -15,11 +15,11 @@ const QUICK_REPLIES = [
 ];
 
 const DEMO_ITEMS: CareItem[] = [
-  { id: 1, kind: "Prayer request", title: "Family health", person: "Amaka Nwosu", body: "Please pray for my mother as she continues her treatment.", status: "New", private: true, anonymous: false, time: "Today · 8:46 AM", replies: [] },
+  { id: 1, kind: "Prayer request", title: "Family health", person: "Chantal Kasongo", body: "Please pray for my mother as she continues her treatment.", status: "New", private: true, anonymous: false, time: "Today · 8:46 AM", replies: [] },
   { id: 5, kind: "Prayer request", title: "Strength through a hard season", person: "Anonymous member", body: "I am struggling quietly and would value the prayers of the church without sharing my name.", status: "New", private: true, anonymous: true, time: "Today · 7:15 AM", replies: [] },
-  { id: 2, kind: "Testimony", title: "God made a way", person: "Samuel Okoro", body: "After months of searching, I received a new job offer and I want to thank the church for praying with me.", status: "Review", private: false, anonymous: false, time: "Yesterday · 4:20 PM", replies: [] },
-  { id: 3, kind: "Prayer request", title: "Wisdom for my family", person: "Grace Mensah", body: "Please keep my family in prayer as we make an important decision.", status: "Praying", private: true, anonymous: false, time: "Jun 29 · 7:10 PM", replies: [{ id: 1, message: "We prayed for your family at Tuesday's intercessors meeting. Trusting God for clear direction.", leaderName: "Pastor Parfait", time: "Jun 30 · 9:02 AM" }] },
-  { id: 4, kind: "Testimony", title: "A peaceful recovery", person: "Esther Bello", body: "I am grateful for a healthy recovery and the support of my small group.", status: "Published", private: false, anonymous: false, time: "Jun 27 · 11:32 AM", replies: [] },
+  { id: 2, kind: "Testimony", title: "God made a way", person: "Sipho Ndlovu", body: "After months of searching, I received a new job offer and I want to thank the church for praying with me.", status: "Review", private: false, anonymous: false, time: "Yesterday · 4:20 PM", replies: [] },
+  { id: 3, kind: "Prayer request", title: "Wisdom for my family", person: "Grâce Mutombo", body: "Please keep my family in prayer as we make an important decision.", status: "Praying", private: true, anonymous: false, time: "Jun 29 · 7:10 PM", replies: [{ id: 1, message: "We prayed for your family at Tuesday's intercessors meeting. Trusting God for clear direction.", leaderName: "Pastor Domique Somwe", time: "Jun 30 · 9:02 AM" }] },
+  { id: 4, kind: "Testimony", title: "A peaceful recovery", person: "Lerato Mokoena", body: "I am grateful for a healthy recovery and the support of my small group.", status: "Published", private: false, anonymous: false, time: "Jun 27 · 11:32 AM", replies: [] },
 ];
 
 function ReplyComposer({ item, onSend, onCancel, pending }: { item: CareItem; onSend: (message: string) => void; onCancel: () => void; pending: boolean }) {

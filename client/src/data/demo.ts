@@ -34,9 +34,12 @@ export const GENDERS: Gender[] = ["Female", "Male"];
 export const TAGS = ["Baptised", "Leader", "Volunteer", "New believer", "Small group", "Tither", "Married", "Student"] as const;
 export const FUNDS = ["Tithe", "Offering", "Building project", "Missions", "Benevolence"] as const;
 
-const FIRST_F = ["Amaka", "Grace", "Esther", "Miriam", "Naledi", "Thandiwe", "Chantal", "Bisi", "Zanele", "Lerato", "Sarah", "Ruth", "Nadine", "Precious", "Blessing", "Aminata", "Joyce", "Divine", "Rebecca", "Lindiwe", "Mercy", "Faith", "Tshepiso", "Ornella"];
-const FIRST_M = ["Samuel", "Daniel", "Michael", "Tolu", "Thabo", "Emmanuel", "Parfait", "Joseph", "Sipho", "Jean-Claude", "David", "Kabelo", "Patrick", "Moses", "Elijah", "Bongani", "Josué", "Andile", "Christian", "Nathan", "Lucky", "Tendai", "Israel", "Serge"];
-const LAST = ["Nwosu", "Mensah", "Bello", "Okafor", "Mokoena", "Dlamini", "Kabila", "Adebayo", "Ndlovu", "Molefe", "Eze", "Okoro", "Mbeki", "Tshabalala", "Kasongo", "Ilunga", "Mwamba", "Van Wyk", "Adeyemi", "Somwe", "Kolesha", "Nkosi", "Mutombo", "Zulu"];
+const CONGO_F = ["Chantal", "Nadine", "Grâce", "Mireille", "Ornella", "Divine", "Bijou", "Esther", "Joyce", "Merveille", "Ruth", "Patricia"];
+const CONGO_M = ["Jean-Pierre", "Serge", "Parfait", "Emmanuel", "Patrick", "Josué", "Jean-Claude", "David", "Christian", "Moïse", "Joseph", "Trésor"];
+const CONGO_LAST = ["Kasongo", "Ilunga", "Mutombo", "Mbuyi", "Mukendi", "Kabeya", "Tshibangu", "Mwamba", "Kalala", "Kolesha", "Somwe", "Kabongo"];
+const SA_F = ["Naledi", "Thandiwe", "Lerato", "Zanele", "Nomsa", "Lindiwe", "Refilwe", "Tshepiso", "Nokuthula", "Bontle", "Palesa", "Ayanda"];
+const SA_M = ["Thabo", "Sipho", "Kabelo", "Bongani", "Andile", "Sizwe", "Lungelo", "Mandla", "Themba", "Sibusiso", "Luyanda", "Tumelo"];
+const SA_LAST = ["Mokoena", "Dlamini", "Ndlovu", "Molefe", "Nkosi", "Van Wyk", "Mbeki", "Tshabalala", "Zulu", "Mahlangu", "Sithole", "Khumalo"];
 const TONES = ["rose", "indigo", "amber", "emerald", "violet", "slate", "gold"];
 
 let seed = 7;
@@ -50,8 +53,9 @@ TODAY.setHours(0, 0, 0, 0);
 
 function buildMember(i: number): Member {
   const gender: Gender = rand() > 0.52 ? "Female" : "Male";
-  const first = gender === "Female" ? pick(FIRST_F) : pick(FIRST_M);
-  const last = pick(LAST);
+  const congolese = i % 2 === 0;
+  const first = gender === "Female" ? pick(congolese ? CONGO_F : SA_F) : pick(congolese ? CONGO_M : SA_M);
+  const last = pick(congolese ? CONGO_LAST : SA_LAST);
   const status: MemberStatus = i % 9 === 0 ? "Visitor" : i % 11 === 0 ? "Inactive" : i % 7 === 0 ? "Needs follow-up" : "Active";
   const attendance = Array.from({ length: 12 }, (_, w) => {
     if (status === "Inactive") return w < 3 && rand() > 0.6;
