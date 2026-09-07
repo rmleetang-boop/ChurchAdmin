@@ -10,9 +10,24 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>ChurchFlow Admin</title>
+    <style>
+      #app-startup{box-sizing:border-box;min-height:100svh;display:grid;align-content:center;justify-items:start;padding:clamp(1.5rem,8vw,8rem);background:#101015;color:#eee9de;font:16px/1.65 Georgia,serif}
+      #app-startup h1{font-size:clamp(2rem,5vw,3rem);font-weight:400;margin:.5rem 0}#app-startup p{max-width:32rem;color:#aaa8ad}
+      #startup-retry{border:1px solid #d8bc74;border-radius:.5rem;background:#d8bc74;color:#17151a;padding:.8rem 1.3rem;font:inherit;cursor:pointer}
+      #startup-retry:hover{background:#e6cf98}#startup-retry:focus-visible{outline:2px solid #eee9de;outline-offset:4px}
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <section id="app-startup" data-testid="app-startup" aria-live="polite">
+        <p data-testid="startup-brand">CHURCHFLOW · HEIRS OF PROMISE SANCTUARY</p>
+        <h1 id="startup-title" data-testid="startup-title">Opening your workspace…</h1>
+        <p id="startup-message" data-testid="startup-message">Connecting you to your church community.</p>
+        <button id="startup-retry" data-testid="startup-retry-button" hidden>Try again</button>
+        <noscript><p data-testid="javascript-required">JavaScript is required to open ChurchFlow. Please enable it in your browser settings.</p></noscript>
+      </section>
+    </div>
+    <script src="/boot.js" defer></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -80,10 +80,3 @@ createRoot(document.getElementById("root")!).render(
   </trpc.Provider>
 );
 
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(() => {
-      // The dashboard remains fully usable when service workers are unavailable.
-    });
-  });
-}
