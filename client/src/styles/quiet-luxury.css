@@ -1,0 +1,191 @@
+/* Cosmetic finish only. Existing layouts, breakpoints and interactions stay intact. */
+:root {
+  --display: "Playfair Display", Georgia, serif;
+  --accent: #d4c4a8;
+  --accent-strong: #b0a392;
+  --accent-soft: #f6f4f0;
+  --accent-ink: #786247;
+  --metal-stroke: #987d54;
+  --bg: #fff;
+  --bg-2: #fff;
+  --surface: #fff;
+  --surface-2: #fafaf8;
+  --surface-3: #f0ede7;
+  --line: #efece6;
+  --line-strong: #e0dacf;
+  --gold: var(--accent-ink);
+  --gold-soft: #8b7350;
+  --gold-dim: var(--accent-soft);
+  --gold-glow: rgba(176, 163, 146, .14);
+  --ivory: #2a2624;
+  --text: #2a2624;
+  --text-2: #686056;
+  --muted: #7a7369;
+  --muted-2: #7d7468;
+  --shadow: 0 8px 30px rgba(42, 38, 36, .03);
+  --shadow-hover: 0 12px 40px rgba(42, 38, 36, .055);
+  --background: #fff;
+  --foreground: #2a2624;
+  --card: #fff;
+  --card-foreground: #2a2624;
+  --popover: #fff;
+  --popover-foreground: #2a2624;
+  --primary: #d4c4a8;
+  --primary-foreground: #2a2624;
+  --secondary: #f6f4f0;
+  --secondary-foreground: #786247;
+  --border: #efece6;
+  --input: #e0dacf;
+  --ring: #987d54;
+  --muted-foreground: #7a7369;
+}
+
+/* Editorial emphasis, with clean sans-serif controls and readable data labels. */
+h1, h2, h3 { font-family: var(--display); font-weight: 500; letter-spacing: -.018em; }
+.welcome-pulse h1, .workspace-page-heading h1, .module-header h1,
+.member-welcome h1, .member-page-heading h1 { font-weight: 400; letter-spacing: -.035em; line-height: 1.18; }
+.welcome-greeting { color: var(--text-2); font-weight: 400; }
+.greeting-dot { color: var(--metal-stroke); }
+.section-heading h2, .ministry-card > h2, .care-recommendation h2,
+.workspace-dialog [data-slot="dialog-title"] { font-family: var(--display); font-weight: 500; line-height: 1.35; }
+.giving-goal-main h2 { font-family: var(--body); color: var(--text-2); }
+.eyebrow { color: var(--muted); letter-spacing: .17em; }
+.overview-utility > .eyebrow, .workspace-page-heading > div > .eyebrow { color: var(--accent-ink); }
+.church-pulse-ring strong, .pulse-metric-value strong, .giving-goal-amount,
+.attendance-chart-summary > strong, .department-summary strong {
+  font-family: var(--display); font-weight: 500; letter-spacing: -.035em;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.attendance-chart-summary > strong small { font-family: var(--body); }
+.welcome-description, .hero-trend-caption, .dashboard-footer { color: var(--muted); }
+.dashboard-footer > span:first-child { color: var(--text-2); }
+
+/* Warm, finely edged navigation; no extra ornament or changes to proportions. */
+.church-sidebar, .mobile-navigation-dialog { background: var(--surface-2); border-color: var(--line); }
+.church-brand-mark {
+  color: var(--accent-ink); border-color: #d9cdbb; background: #fffefa;
+  box-shadow: inset 0 0 0 3px #fff, 0 3px 10px rgba(86, 69, 45, .045);
+}
+.church-brand strong { color: var(--text); letter-spacing: .105em; font-weight: 600; }
+.church-brand small { color: var(--muted); }
+.church-nav-item { color: var(--text-2); }
+.church-nav-item:hover { color: var(--accent-ink); background: #f4f1eb; }
+.church-nav-item.active { color: #68553e; background: #f0ebe2; box-shadow: inset 0 0 0 1px #e6dece; }
+.church-nav-item.active i, .tiny-dot { background: var(--metal-stroke); }
+.church-sidebar-footer { color: var(--accent-ink); }
+.church-topbar { background: rgba(255, 255, 255, .96); border-bottom-color: var(--line); }
+.workspace-context-bar { border-bottom-color: #f3f0eb; }
+.context-separator, .desktop-breadcrumb svg { color: #c7beb1; }
+.church-search-button kbd { background: #faf9f6; border-color: var(--line); }
+.profile-avatar {
+  color: #726049; background: #e9e0d2; border-color: #fffefa;
+  box-shadow: 0 0 0 1px #d8cbb7, 0 2px 8px rgba(86, 69, 45, .04);
+}
+.church-notification-button i { background: var(--metal-stroke); }
+.mobile-bottom-nav { background: rgba(255, 254, 252, .97); border-top-color: #e8dfd1; box-shadow: 0 -4px 24px rgba(42, 38, 36, .035); }
+.mobile-bottom-nav > * { color: #82796e; }
+.mobile-bottom-nav .active { color: #786247; }
+.mobile-bottom-nav .active i { background: var(--metal-stroke); }
+
+/* Champagne belongs on surfaces and details; darker bronze keeps charts legible. */
+.pulse-chart, .church-pulse-ring { --accent: var(--metal-stroke); --accent-soft: #f1ece3; }
+.church-pulse-ring { isolation: isolate; }
+.church-pulse-ring::after {
+  content: ""; position: absolute; inset: 13%; border: 1px solid #eee7da;
+  border-radius: 50%; pointer-events: none; z-index: -1;
+}
+.church-pulse-ring > div { background: transparent; }
+.church-pulse-ring span { color: var(--accent-ink); letter-spacing: .11em; }
+.pulse-metric-value svg { color: var(--metal-stroke); }
+.pulse-metric > span { color: var(--text-2); }
+.pulse-metrics, .overview-panel, .department-summary, .ministry-card,
+.ministry-quick-card, .feature-request-list, .panel, .metric-card, .fund-card {
+  background: #fff; border-color: var(--line); box-shadow: var(--shadow);
+}
+.pulse-metrics { position: relative; border-color: #e8e1d5; }
+.pulse-metrics::before {
+  content: ""; pointer-events: none; position: absolute; top: -1px; left: 12%; right: 12%; height: 1px;
+  background: linear-gradient(90deg, transparent, #cbb99a, transparent);
+}
+.pulse-metric { border-right-color: #eae3d8; }
+.giving-goal-card { background: #faf8f3; border-color: #e7dece; box-shadow: var(--shadow); }
+.giving-goal-card .eyebrow { color: var(--accent-ink); }
+.giving-goal-track { background: #e9e2d6; }
+.giving-goal-track > span { background: var(--metal-stroke); }
+.giving-goal-track i { border-color: var(--metal-stroke); box-shadow: 0 0 0 3px rgba(176, 163, 146, .12); }
+.giving-goal-progress-copy strong { color: var(--accent-ink); }
+.giving-goal-art { --accent: #9d845d; }
+.giving-performance { color: #7b6647; background: #f3eddf; border: 1px solid #e7ddc9; }
+.care-recommendation { background: #fcfaf6; border-color: #ede5d8; box-shadow: var(--shadow); }
+.care-recommendation-icon, .care-recommendation-heading .eyebrow { color: #8a724e; }
+.care-recommendation > p { color: var(--muted); }
+.quick-card-icon, .soft-icon, .small-count { color: var(--accent-ink); background: #f6f2e9; }
+.quick-card-icon, .soft-icon { box-shadow: inset 0 0 0 1px #eae1d1; }
+.quick-card-arrow, .gathering-row > svg { color: #a39783; }
+.ministry-quick-card, .ministry-card { transition: transform .3s ease-out, border-color .3s ease-out, box-shadow .3s ease-out; }
+.ministry-quick-card:hover, .ministry-card:hover { transform: translateY(-2px); border-color: #d9cbb4; box-shadow: var(--shadow-hover); }
+.gathering-date { background: #f7f3eb; color: #887352; border-color: #e8dfd0; }
+.gathering-date strong { font-family: var(--display); font-weight: 500; }
+.gathering-row:hover .gathering-info strong { color: var(--accent-ink); }
+.branch-snapshot > .section-heading > svg, .care-row-link, .positive-change { color: var(--accent-ink); }
+.branch-snapshot-row i { background: #b5a17c; }
+
+/* The same finish continues into department cards, forms and existing modules. */
+.ministry-monogram, .ministry-monogram.tone-1, .ministry-monogram.tone-2 {
+  background: #f5f0e7; color: #927c59; box-shadow: inset 0 0 0 1px #e8decd;
+  font-family: var(--display); font-weight: 500;
+}
+.ministry-monogram.tone-1 { background: #f5ece5; color: #957b66; }
+.ministry-monogram.tone-2 { background: #f0eeea; color: #82796b; }
+.ministry-branch { background: #fbfaf7; border-color: var(--line); }
+.ministry-add-card { background: #fdfcf9; border-color: #ddd2bf; }
+.ministry-add-card:hover { background: #faf6ed; border-color: #baa786; }
+.ministry-add-card .add-circle { background: #f1eadd; color: var(--accent-ink); }
+.ministry-add-card strong { font-family: var(--display); font-weight: 500; }
+.request-feature-button { background: #f8f5ef; border-color: #eae1d2; color: var(--accent-ink); }
+.request-feature-button:hover { background: #f0e9dd; }
+.development-note, .department-brief-summary { background: #faf8f3; border-color: #e9e1d3; color: var(--accent-ink); }
+.workspace-tabs > button.selected, .feature-fields-heading > span, .workspace-empty svg { color: var(--accent-ink); }
+.workspace-tabs > button.selected::after, .form-step-track i:first-child,
+.form-step-track i.complete { background: var(--metal-stroke); }
+.workspace-tabs > button span { background: #f1ece3; color: var(--accent-ink); }
+.department-filter-row .search-field { background: #fcfbf8; }
+.feature-request-row:hover, .request-detail-copy { background: #fcfbf8; }
+.request-status-delivered { color: #55654f; background: #f2f4ed; border-color: #dde4d6; }
+.request-status-delivered::before { background: #748768; }
+.sample-storage-note { border-left-color: #d8cab0; }
+.mini-person, .light-person-avatar { background: #eee6d9; color: #897451; }
+.avatar-rose { background: #f2e7df; color: #93735f; }
+.avatar-indigo, .avatar-violet, .avatar-purple, .avatar-slate { background: #ece8e2; color: #807466; }
+.avatar-amber, .avatar-gold, .avatar-emerald { background: #efe6d7; color: #8b7450; }
+.table-head { background: #faf9f6; }.table-row:hover { background: #fcfbf8; }
+.giving-stat.featured, .project-banner, .sermon-explainer, .featured-member-card { background: #faf8f3; border-color: #e7dece; }
+.filter-chip.active, .filter-chip:hover { border-color: #d9cbb4; }
+
+/* Champagne buttons use espresso lettering, not low-contrast white lettering. */
+.button-primary, .member-primary {
+  background: #d4c4a8; color: #2a2624; border-color: #c7b696; border-radius: 8px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55), 0 3px 10px rgba(92, 70, 36, .06);
+}
+.button-primary:hover, .member-primary:hover {
+  background: #cbb998; color: #2a2624; border-color: #bca783;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45), 0 5px 14px rgba(92, 70, 36, .09);
+}
+.button-ghost, .care-recommendation-button { border-color: var(--line-strong); color: var(--text-2); background: #fff; border-radius: 8px; }
+.button-ghost:hover, .care-recommendation-button:hover { background: #faf8f3; border-color: #cdbb9c; }
+.text-button, .workspace-popover > button, .icon-button:hover, .palette-icon,
+.member-install, .member-tabs button.active { color: var(--accent-ink); }
+.text-button:hover { color: #51412e; }
+.response-button:hover, .response-button.chosen, .member-response:hover, .member-response.active { background: #d4c4a8; color: #2a2624; border-color: #c7b696; }
+.workspace-dialog, .workspace-popover, .palette, .modal-card, .member-modal, .drawer { background: #fff; border-color: var(--line-strong); }
+.workspace-dialog, .workspace-popover, .palette, .modal-card, .member-modal { box-shadow: 0 24px 80px rgba(42, 38, 36, .14); }
+.workspace-form input:focus, .workspace-form textarea:focus, .workspace-form select:focus { border-color: var(--metal-stroke); box-shadow: 0 0 0 3px #f4eee3; }
+button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, a:focus-visible { outline-color: var(--metal-stroke); }
+::selection { background: #e9deca; color: #2a2624; }
+
+@media (max-width: 600px) {
+  .welcome-pulse h1 { letter-spacing: -.04em; line-height: 1.2; }
+  .church-brand strong { letter-spacing: .09em; }
+  .pulse-metric-value strong, .giving-goal-amount { letter-spacing: -.04em; }
+  .ministry-quick-card:hover, .ministry-card:hover { transform: none; }
+}

@@ -10,6 +10,7 @@ import "./index.css";
 import "./styles/light-theme.css";
 import "./styles/dashboard.css";
 import "./styles/departments.css";
+import "./styles/quiet-luxury.css";
 
 const queryClient = new QueryClient();
 

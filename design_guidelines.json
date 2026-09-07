@@ -1,0 +1,80 @@
+{
+  "theme": "light",
+  "typography": {
+    "headings": {
+      "fontFamily": "'Playfair Display', serif",
+      "weights": ["400", "500", "600"],
+      "description": "Elegant, quiet luxury serif for headings (H1, H2, H3). Brings a premium, editorial feel without overwhelming the dashboard."
+    },
+    "body": {
+      "fontFamily": "'Albert Sans', sans-serif",
+      "weights": ["400", "500"],
+      "description": "Clean, highly readable sans-serif for body text. Provides a modern structural contrast to the elegant serif headings."
+    },
+    "monospace": {
+      "fontFamily": "'IBM Plex Mono', monospace",
+      "description": "Used sparingly for eyebrows and very small labels, tracked out (letter-spacing)."
+    }
+  },
+  "colors": {
+    "background": "#FFFFFF",
+    "surface": "#FFFFFF",
+    "surface_secondary": "#FAFAF8",
+    "accent_primary": "#D4C4A8",
+    "accent_strong": "#B0A392",
+    "accent_soft": "#F6F4F0",
+    "text_primary": "#2A2624",
+    "text_secondary": "#7A7369",
+    "border_light": "#EFECE6",
+    "border_strong": "#E0DACF",
+    "description": "Warm whites, subtle champagne accents, and espresso text for a quiet luxury aesthetic. Avoid harsh blacks and bright tech-greens."
+  },
+  "visual_enhancers": {
+    "shadows": {
+      "subtle": "0 8px 30px rgba(42, 38, 36, 0.03)",
+      "hover": "0 12px 40px rgba(42, 38, 36, 0.05)"
+    },
+    "borders": {
+      "default": "1px solid var(--border_light)",
+      "focused": "1px solid var(--accent_strong)"
+    },
+    "radius": {
+      "cards": "16px",
+      "buttons": "8px"
+    }
+  },
+  "grids_and_layouts": {
+    "general": "Maintain full-width responsive grids. No disproportionate scaling. Screens must fully span the viewport gracefully on both cellphone and desktop.",
+    "cards": "Ensure cards have adequate internal padding and finely detailed borders. Quiet luxury relies on precise, fine 1px borders and warm white surfaces without heavy inner gradients."
+  },
+  "motion": {
+    "hover_states": "Soft, 0.3s ease-out translations and subtle shadow enhancements. Avoid aggressive scaling.",
+    "buttons": "Fade background and text colors smoothly over 0.2s."
+  },
+  "component_instructions": {
+    "cards": "Update styles to use pure white background, subtle border_light, and the subtle shadow. Apply serif font to panel and metric card headings.",
+    "buttons": "Primary buttons should use accent_strong (#B0A392) or accent_primary (#D4C4A8) background with white or espresso text. Ghost buttons use border_strong and text_primary.",
+    "sidebar": "Update sidebar to use surface_secondary (#FAFAF8) with a delicate border_light right border. Active nav items should use accent_soft background and accent_strong text.",
+    "topbar": "Semi-solid white background (e.g. rgba(255,255,255,0.95)) with backdrop-blur. Do NOT use completely transparent background for any overlay. Add 1px border-bottom using border_light.",
+    "metrics": "Pulse charts and progress bars should use the champagne/gold accent colors instead of heavy green.",
+    "avatars": "Use warm, earthy tones (champagne, espresso, taupe) for initials instead of bright multi-colors."
+  },
+  "data_guidelines": {
+    "names": "Preserve Congolese and South African sample names.",
+    "pastor": "Ensure 'Pastor Domique Somwe' is retained.",
+    "content": "Keep existing church flows, metrics, and pulse ring exactly as they are structurally."
+  },
+  "instructions_to_main_agent": [
+    "Modify /app/client/src/index.css and /app/client/src/styles/*.css to implement the color tokens and typography changes.",
+    "Replace 'Albert Sans' headings with 'Playfair Display' via Google Fonts import.",
+    "Adjust CSS variables: --accent, --gold to champagne/taupe values.",
+    "Adjust --bg, --surface to #FFFFFF, and --surface-2 to #FAFAF8.",
+    "Adjust --text to #2A2624 (espresso).",
+    "Refine box-shadows to be extremely subtle to give the 'finely detailed cards' look.",
+    "DO NOT use complete transparent background in header, overlays, any surface that has content under it.",
+    "Apply guidelines assuming the target files are .js files (no structural HTML changes to .js files, just class and css token updates).",
+    "Ensure 'data-testid' attributes are strictly untouched."
+  ],
+  "GENERAL UI UX DESIGN GUIDELINES": "All interactive and key informational elements MUST include a `data-testid` attribute to facilitate robust automated testing. Ensure a quiet luxury aesthetic: warm whites, subtle champagne accents, elegant headings, and finely detailed cards.",
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": "Do not alter the existing functionalities, routes, layout structure, or sample data. Implement purely cosmetic refinement of CSS variables, font families, box-shadows, and borders to achieve 'Quiet luxury'."
+}

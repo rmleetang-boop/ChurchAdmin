@@ -121,3 +121,30 @@ Latest user instruction: "No testing needed for now". No further testing was per
 - P1: Apply the updated code through the user's existing live-site workflow when authorized. The public Fly site has not been updated in this session.
 - P1: Only when requested, exercise the full department-create/request/status/export flow and wider device/route regression coverage; verify authenticated API persistence against MySQL.
 - P2: Add notifications for department leaders when the development team changes a request's status.
+
+## Quiet-luxury cosmetic refinement (current session)
+
+### Original request and explicit preference
+- User: "Good changes but the premium feeling and exclusivity are lost. It feels simple, plain. I need a more comestic implementation without doing too much".
+- Selected direction: "Quiet luxury: warm whites, subtle champagne accents, elegant headings, and finely detailed cards".
+- Keep white backgrounds, current features, sample names, and full-width responsive structure. The earlier "No testing needed" instruction remains in effect.
+
+### Implemented
+- Design agent produced `/app/design_guidelines.json` with the chosen quiet-luxury palette, typography and restrained cosmetic treatments.
+- Added `client/src/styles/quiet-luxury.css` as the final visual layer, imported after existing styles in `client/src/main.tsx`. No route, component markup, data, API, database, or interaction logic changed.
+- Updated the Google Fonts import in `client/src/index.css`: Playfair Display headings and key figures, paired with existing Albert Sans controls/body copy and existing mono support.
+- White backgrounds, warm-white secondary surfaces, espresso text, champagne accents, and darker bronze chart strokes/labels for readable contrast.
+- Refined cards with delicate borders, diffused shadows, a fine metric-card highlight, and restrained hover movement. Giving cards, department cards, forms, navigation, avatars and the member experience share the same visual finish.
+- Champagne primary buttons use espresso lettering rather than low-contrast white text. Success/error status distinctions remain readable.
+- Existing responsive grid dimensions, page widths, mobile navigation, Pastor Domique Somwe, and Congolese/South African sample names are preserved.
+
+### Build / verification boundary
+- Production assets rebuilt successfully with `yarn run build`; the running static-serving preview reads the updated assets without requiring a server restart.
+- No tests, screenshots, browser automation, testing agent, or extra feature work were performed in this session, per the user's request.
+- Existing build warnings about bundle size and third-party annotation comments remain non-blocking and outside this cosmetic scope.
+- No public Fly-site update was performed. Existing browser-only sample request persistence and database/OAuth prerequisites are unchanged.
+
+### Next tasks
+- P0: None added by this cosmetic-only request.
+- P1: Existing shared department/database and live-site tasks remain as documented above, only when authorized.
+- P2: Optional matching typography and finishes for printable church reports.
