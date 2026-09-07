@@ -40,6 +40,18 @@ export const userBranchAccess = mysqlTable("user_branch_access", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
+export const departments = mysqlTable("departments", {
+  id: int("id").autoincrement().primaryKey(),
+  branchId: int("branchId").notNull(),
+  name: varchar("name", { length: 160 }).notNull(),
+  leadName: varchar("leadName", { length: 160 }),
+  memberCount: int("memberCount").default(0).notNull(),
+  color: varchar("color", { length: 16 }).default("#6958d9").notNull(),
+  active: int("active").default(1).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
 export const churchMembers = mysqlTable("church_members", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
@@ -159,6 +171,8 @@ export type InsertUser = typeof users.$inferInsert;
 export type Church = typeof churches.$inferSelect;
 export type ChurchBranch = typeof churchBranches.$inferSelect;
 export type UserBranchAccess = typeof userBranchAccess.$inferSelect;
+export type Department = typeof departments.$inferSelect;
+export type InsertDepartment = typeof departments.$inferInsert;
 export type ChurchProject = typeof churchProjects.$inferSelect;
 export type InsertChurchProject = typeof churchProjects.$inferInsert;
 export type ProjectContribution = typeof projectContributions.$inferSelect;

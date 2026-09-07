@@ -3,7 +3,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { adminProcedure, overseerProcedure, protectedProcedure, publicProcedure, router } from "./_core/trpc";
-import { addProjectContribution, createAttendanceDeclaration, createChurchProject, createCommunicationCampaign, createPrayerRequest, createSermon, createTestimony, deleteChurchProject, getChurchProject, listChurchNetwork, listMemberAttendance, listMemberGiving, listMemberNotifications, listMemberPrayerRequests, listPrayerRequests, listSermons, listTestimonies, listChurchProjects, markSermonDistributed, updateChurchProject } from "./db";
+import { addProjectContribution, createAttendanceDeclaration, createChurchProject, createCommunicationCampaign, createDepartment, createPrayerRequest, createSermon, createTestimony, deleteChurchProject, getChurchProject, listChurchNetwork, listDepartments, listMemberAttendance, listMemberGiving, listMemberNotifications, listMemberPrayerRequests, listPrayerRequests, listSermons, listTestimonies, listChurchProjects, markSermonDistributed, updateChurchProject } from "./db";
 import { storageGetSignedUrl, storagePut } from "./storage";
 import { transcribeAudio } from "./_core/voiceTranscription";
 import { pickSermonHighlights } from "../shared/sermonUtils";
@@ -49,6 +49,10 @@ export const appRouter = router({
   admin: router({
     prayerRequests: adminProcedure.query(() => listPrayerRequests()),
     testimonies: adminProcedure.query(() => listTestimonies()),
+    departments: router({
+      list: adminProcedure.input(z.object({ branchId: z.number().int().positive().optional() }).optional()).query(({ input }) => listDepartments(input?.branchId)),
+      create: adminProcedure.input(z.object({ branchId: z.number().int().positive(), name: z.string().min(2), leadName: z.string().optional(), memberCount: z.number().int().nonnegative().default(0), color: z.string().default("#6958d9") })).mutation(({ input }) => createDepartment(input)),
+    }),
   }),
   network: router({
     overview: overseerProcedure.query(() => listChurchNetwork()),

@@ -84,7 +84,7 @@ const givingRows = [
 ];
 
 const branches = [
-  { id: 1, name: "Milnerton", city: "Milnerton", pastor: "Dominique Somwe", members: 1248, attendance: 864, giving: 6840000 },
+  { id: 1, name: "Milnerton", city: "Milnerton", pastor: "Pastor Parfait Kolesha", members: 1248, attendance: 864, giving: 6840000 },
   { id: 2, name: "Bellville", city: "Bellville", pastor: "Dominique Somwe", members: 642, attendance: 418, giving: 3180000 },
   { id: 3, name: "Eastgate", city: "Eastgate", pastor: "Dominique Somwe", members: 486, attendance: 309, giving: 2460000 },
   { id: 4, name: "Kinshasa", city: "Kinshasa", pastor: "Dominique Somwe", members: 918, attendance: 602, giving: 4210000 },
@@ -94,10 +94,10 @@ const branches = [
 const zar = (amount: number) => `R${amount.toLocaleString("en-ZA")}`;
 
 const departments = [
-  { name: "Worship & Creative", lead: "Miriam Okafor", count: "28 people", color: "#6958d9", icon: Sparkles, progress: 84 },
-  { name: "Children's Church", lead: "Daniel Adeyemi", count: "34 people", color: "#e49351", icon: HandHeart, progress: 72 },
-  { name: "Welcome & Hospitality", lead: "Grace Mensah", count: "19 people", color: "#2c9b87", icon: UsersRound, progress: 91 },
-  { name: "Media & Production", lead: "Samuel Okoro", count: "16 people", color: "#4a7cc9", icon: BookOpen, progress: 67 },
+  { name: "Worship & Creative", lead: "Miriam Okafor", count: "28 people", color: "#6958d9", icon: Sparkles, progress: 84, branch: "Milnerton" },
+  { name: "Children's Church", lead: "Daniel Adeyemi", count: "34 people", color: "#e49351", icon: HandHeart, progress: 72, branch: "Bellville" },
+  { name: "Welcome & Hospitality", lead: "Grace Mensah", count: "19 people", color: "#2c9b87", icon: UsersRound, progress: 91, branch: "Eastgate" },
+  { name: "Media & Production", lead: "Samuel Okoro", count: "16 people", color: "#4a7cc9", icon: BookOpen, progress: 67, branch: "Kinshasa" },
 ];
 
 function Avatar({ initials, tone = "indigo", small = false }: { initials: string; tone?: string; small?: boolean }) {
@@ -183,7 +183,7 @@ function ProjectView() {
     { id: 1, title: "New auditorium chairs", description: "Replace the main auditorium seating before the October thanksgiving service.", target: 4500000, raised: 2860000, status: "Active", deadline: "Oct 12, 2024", leader: "Dominique Somwe", branch: "Milnerton", link: "https://paystack.com/pay/heirs-promise-chairs" },
     { id: 2, title: "Children's church refresh", description: "Make the upstairs hall brighter, safer, and more welcoming for our children.", target: 1800000, raised: 1125000, status: "Active", deadline: "Sep 28, 2024", leader: "Daniel Adeyemi", branch: "Bellville", link: "https://paystack.com/pay/heirs-promise-kids" },
     { id: 3, title: "Community food bank", description: "Monthly food support for 100 families in our neighborhood.", target: 1200000, raised: 1200000, status: "Completed", deadline: "Aug 31, 2024", leader: "Grace Mensah", branch: "Eastgate", link: "https://paystack.com/pay/heirs-promise-food" },
-    { id: 4, title: "Building project", description: "Expand the Milnerton branch facilities to welcome more families and ministries.", target: 3000000, raised: 180000, status: "Active", deadline: "Mar 31, 2025", leader: "Dominique Somwe", branch: "Milnerton", link: "https://paystack.com/pay/heirs-promise-milnerton-building" },
+    { id: 4, title: "Building project", description: "Expand the Milnerton branch facilities to welcome more families and ministries.", target: 3000000, raised: 180000, status: "Active", deadline: "Mar 31, 2025", leader: "Pastor Pascale Kolesha Avenvuka", branch: "Milnerton", link: "https://paystack.com/pay/heirs-promise-milnerton-building" },
   ]);
   const [editing, setEditing] = useState<Project | null>(null);
   const [contributing, setContributing] = useState<Project | null>(null);
@@ -207,7 +207,22 @@ function CommunicationsView() {
 }
 
 function DepartmentsView() {
-  return <ModuleLayout eyebrow="TEAMS & OWNERSHIP" title="Departments" description="Give every team clarity, a leader, and a simple way to stay aligned." action="Add department" onAction={() => toast.success("Department setup opened")}><div className="department-grid">{departments.map((department) => { const Icon = department.icon; return <div className="department-card" key={department.name}><div className="department-top"><span className="department-icon" style={{ backgroundColor: `${department.color}16`, color: department.color }}><Icon size={19} /></span><button className="icon-button"><MoreHorizontal size={17} /></button></div><h3>{department.name}</h3><p>Led by <strong>{department.lead}</strong></p><div className="department-bottom"><span>{department.count}</span><span>{department.progress}% active</span></div><div className="progress-track"><div style={{ width: `${department.progress}%`, backgroundColor: department.color }} /></div></div>})}<button className="department-card add-department" onClick={() => toast.success("Department setup opened")}><span className="add-circle"><Plus size={19} /></span><strong>Set up a department</strong><span>Create ownership and care teams</span></button></div></ModuleLayout>;
+  const { user } = useAuth();
+  const [items, setItems] = useState(departments);
+  const [branch, setBranch] = useState("Milnerton");
+  const [form, setForm] = useState({ name: "", lead: "", branch: "Milnerton" });
+  const [open, setOpen] = useState(false);
+  const canManage = user?.role === "admin";
+  const visible = items.filter(item => item.branch === branch);
+  const addDepartment = () => {
+    if (!form.name.trim()) return toast.error("Add a department name first");
+    setItems(current => [...current, { name: form.name.trim(), lead: form.lead.trim() || "Branch leader", count: "0 people", color: "#6958d9", icon: Sparkles, progress: 0, branch: form.branch }]);
+    setBranch(form.branch);
+    setForm({ name: "", lead: "", branch: form.branch });
+    setOpen(false);
+    toast.success("Department added", { description: `${form.name} · ${form.branch}` });
+  };
+  return <ModuleLayout eyebrow="TEAMS & OWNERSHIP" title="Departments" description="Each branch can have its own structure. Admins can add departments to one branch without changing another branch." action="Add department" onAction={() => canManage ? setOpen(true) : toast.error("Only administrators can add departments")}><div className="toolbar"><label className="select-button">Branch<select value={branch} onChange={event => setBranch(event.target.value)}>{branches.map(item => <option key={item.id} value={item.name}>{item.name}</option>)}</select></label><span className="status-badge status-green">{visible.length} departments in {branch}</span></div><div className="department-grid">{visible.map((department) => { const Icon = department.icon; return <div className="department-card" key={`${department.branch}-${department.name}`}><div className="department-top"><span className="department-icon" style={{ backgroundColor: `${department.color}16`, color: department.color }}><Icon size={19} /></span><button className="icon-button"><MoreHorizontal size={17} /></button></div><h3>{department.name}</h3><p>Led by <strong>{department.lead}</strong></p><div className="department-bottom"><span>{department.count}</span><span>{department.progress}% active</span></div><div className="progress-track"><div style={{ width: `${department.progress}%`, backgroundColor: department.color }} /></div></div>})}<button className="department-card add-department" onClick={() => canManage ? setOpen(true) : toast.error("Only administrators can add departments")}><span className="add-circle"><Plus size={19} /></span><strong>Add to {branch}</strong><span>Create a branch-specific team</span></button></div>{open && <div className="modal-backdrop"><div className="modal-card"><div className="modal-header"><div><div className="eyebrow">ADMIN DEPARTMENT SETUP</div><h2>Add department</h2></div><button className="icon-button" onClick={() => setOpen(false)}><X size={18} /></button></div><label>Branch<select value={form.branch} onChange={event => setForm({ ...form, branch: event.target.value })}>{branches.map(item => <option key={item.id} value={item.name}>{item.name}</option>)}</select></label><label>Department name<input value={form.name} onChange={event => setForm({ ...form, name: event.target.value })} placeholder="e.g. Young Adults" /></label><label>Department lead<input value={form.lead} onChange={event => setForm({ ...form, lead: event.target.value })} placeholder="Optional" /></label><div className="modal-footer"><button className="button button-ghost" onClick={() => setOpen(false)}>Cancel</button><button className="button button-primary" onClick={addDepartment}>Add department</button></div></div></div>}</ModuleLayout>;
 }
 
 function SermonsView() {

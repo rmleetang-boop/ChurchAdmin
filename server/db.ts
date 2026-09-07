@@ -1,6 +1,6 @@
 import { desc, eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { attendanceDeclarations, churchBranches, churches, churchProjects, communicationCampaigns, InsertUser, memberNotifications, prayerRequests, projectContributions, sermons, testimonies, users } from "../drizzle/schema";
+import { attendanceDeclarations, churchBranches, churches, churchProjects, communicationCampaigns, departments, InsertDepartment, InsertUser, memberNotifications, prayerRequests, projectContributions, sermons, testimonies, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -20,6 +20,22 @@ export async function listChurchNetwork() {
     db.select().from(churchBranches).orderBy(churchBranches.name),
   ]);
   return { churches: churchRows, branches: branchRows };
+}
+
+export async function listDepartments(branchId?: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return branchId
+    ? db.select().from(departments).where(eq(departments.branchId, branchId)).orderBy(departments.name)
+    : db.select().from(departments).orderBy(departments.name);
+}
+
+export async function createDepartment(input: InsertDepartment) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not configured");
+  const result = await db.insert(departments).values(input);
+  const rows = await db.select().from(departments).where(eq(departments.id, Number(result[0].insertId))).limit(1);
+  return rows[0];
 }
 
 export async function upsertUser(user: InsertUser): Promise<void> {
