@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for heirsofpromise-sanctuary on 2026-09-07T05:56:44Z
+# fly.toml app configuration for ChurchAdmin (GHOP).
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'heirsofpromise-sanctuary'
+app = 'churchadmin'
 primary_region = 'iad'
 
 [build]
@@ -11,10 +11,10 @@ primary_region = 'iad'
 
 [env]
   NODE_ENV = 'production'
-  PORT = '3000'
+  PORT = '8080'
 
 [http_service]
-  internal_port = 3000
+  internal_port = 8080
   force_https = true
   auto_stop_machines = 'stop'
   auto_start_machines = true
