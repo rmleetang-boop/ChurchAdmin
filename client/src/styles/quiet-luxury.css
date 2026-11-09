@@ -1,43 +1,45 @@
 /* Cosmetic finish only. Existing layouts, breakpoints and interactions stay intact. */
 :root {
   --display: "Playfair Display", Georgia, serif;
-  --accent: #d4c4a8;
-  --accent-strong: #b0a392;
-  --accent-soft: #f6f4f0;
-  --accent-ink: #786247;
-  --metal-stroke: #987d54;
+  --accent: #26734d;
+  --accent-strong: #18563a;
+  --accent-soft: #eaf4ee;
+  --accent-ink: #1f6845;
+  --metal-stroke: #c59a2b;
   --bg: #fff;
   --bg-2: #fff;
   --surface: #fff;
-  --surface-2: #fafaf8;
-  --surface-3: #f0ede7;
-  --line: #efece6;
-  --line-strong: #e0dacf;
-  --gold: var(--accent-ink);
-  --gold-soft: #8b7350;
-  --gold-dim: var(--accent-soft);
-  --gold-glow: rgba(176, 163, 146, .14);
-  --ivory: #2a2624;
-  --text: #2a2624;
-  --text-2: #686056;
-  --muted: #7a7369;
-  --muted-2: #7d7468;
-  --shadow: 0 8px 30px rgba(42, 38, 36, .03);
-  --shadow-hover: 0 12px 40px rgba(42, 38, 36, .055);
+  --surface-2: #fbfaf7;
+  --surface-3: #f1eee5;
+  --line: #e9e5da;
+  --line-strong: #d8d0be;
+  --gold: #c59a2b;
+  --gold-soft: #92701d;
+  --gold-dim: #f7f1df;
+  --gold-glow: rgba(197, 154, 43, .14);
+  --ivory: #202720;
+  --text: #27312b;
+  --text-2: #526057;
+  --muted: #6c786f;
+  --muted-2: #7a837d;
+  --violet: #7650a4;
+  --violet-dim: #f1ebf8;
+  --shadow: 0 8px 30px rgba(33, 57, 42, .035);
+  --shadow-hover: 0 12px 40px rgba(33, 57, 42, .06);
   --background: #fff;
   --foreground: #2a2624;
   --card: #fff;
   --card-foreground: #2a2624;
   --popover: #fff;
   --popover-foreground: #2a2624;
-  --primary: #d4c4a8;
-  --primary-foreground: #2a2624;
-  --secondary: #f6f4f0;
-  --secondary-foreground: #786247;
-  --border: #efece6;
-  --input: #e0dacf;
-  --ring: #987d54;
-  --muted-foreground: #7a7369;
+  --primary: #26734d;
+  --primary-foreground: #ffffff;
+  --secondary: #f7f1df;
+  --secondary-foreground: #735a16;
+  --border: #e9e5da;
+  --input: #d8d0be;
+  --ring: #c59a2b;
+  --muted-foreground: #6c786f;
 }
 
 /* Editorial emphasis, with clean sans-serif controls and readable data labels. */
@@ -164,19 +166,19 @@ h1, h2, h3 { font-family: var(--display); font-weight: 500; letter-spacing: -.01
 
 /* Champagne buttons use espresso lettering, not low-contrast white lettering. */
 .button-primary, .member-primary {
-  background: #d4c4a8; color: #2a2624; border-color: #c7b696; border-radius: 8px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55), 0 3px 10px rgba(92, 70, 36, .06);
+  background: #26734d; color: #fff; border-color: #18563a; border-radius: 8px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2), 0 3px 10px rgba(30, 90, 57, .12);
 }
 .button-primary:hover, .member-primary:hover {
-  background: #cbb998; color: #2a2624; border-color: #bca783;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45), 0 5px 14px rgba(92, 70, 36, .09);
+  background: #18563a; color: #fff; border-color: #12462f;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16), 0 5px 14px rgba(30, 90, 57, .14);
 }
 .button-ghost, .care-recommendation-button { border-color: var(--line-strong); color: var(--text-2); background: #fff; border-radius: 8px; }
 .button-ghost:hover, .care-recommendation-button:hover { background: #faf8f3; border-color: #cdbb9c; }
 .text-button, .workspace-popover > button, .icon-button:hover, .palette-icon,
 .member-install, .member-tabs button.active { color: var(--accent-ink); }
 .text-button:hover { color: #51412e; }
-.response-button:hover, .response-button.chosen, .member-response:hover, .member-response.active { background: #d4c4a8; color: #2a2624; border-color: #c7b696; }
+.response-button:hover, .response-button.chosen, .member-response:hover, .member-response.active { background: #26734d; color: #fff; border-color: #18563a; }
 .workspace-dialog, .workspace-popover, .palette, .modal-card, .member-modal, .drawer { background: #fff; border-color: var(--line-strong); }
 .workspace-dialog, .workspace-popover, .palette, .modal-card, .member-modal { box-shadow: 0 24px 80px rgba(42, 38, 36, .14); }
 .workspace-form input:focus, .workspace-form textarea:focus, .workspace-form select:focus { border-color: var(--metal-stroke); box-shadow: 0 0 0 3px #f4eee3; }

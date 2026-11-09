@@ -1,4 +1,4 @@
-import { LayoutDashboard, UsersRound, ClipboardCheck, WalletCards, FolderKanban, CalendarDays, MessageSquareText, Mic, Users, Handshake, HeartHandshake } from "lucide-react";
+import { LayoutDashboard, UsersRound, ClipboardCheck, WalletCards, FolderKanban, CalendarDays, MessageSquareText, Mic, Users, Handshake, HeartHandshake, MessageCircle } from "lucide-react";
 
 export const NAV_ITEMS = [
   { label: "Overview", title: "Dashboard", path: "/", icon: LayoutDashboard },
@@ -8,11 +8,16 @@ export const NAV_ITEMS = [
   { label: "Projects", title: "Projects & goals", path: "/projects", icon: FolderKanban },
   { label: "Events", title: "Events", path: "/events", icon: CalendarDays },
   { label: "Communications", title: "Communications", path: "/communications", icon: MessageSquareText },
+  { label: "WhatsApp automation", title: "WhatsApp automation", path: "/whatsapp-automation", icon: MessageCircle },
   { label: "Sermons", title: "Sermons", path: "/sermons", icon: Mic },
   { label: "Departments", title: "Departments", path: "/departments", icon: Users },
   { label: "Volunteers", title: "Volunteers", path: "/volunteers", icon: Handshake },
   { label: "Care inbox", title: "Care inbox", path: "/care", icon: HeartHandshake },
 ] as const;
 export type Section = typeof NAV_ITEMS[number]["label"];
-export const PASTOR_NAME = "Pastor Domique Somwe";
-export const CHURCH_NAME = "Heirs of Promise Sanctuary";
+export const PASTOR_NAME = "Pastor Daniel Katshing";
+export const PASTOR_PROFILES = [
+  { name: "Pastor Daniel Katshing", initials: "DK", title: "Lead Pastor" },
+  { name: "Pastor Phiwe Katshing", initials: "PK", title: "Pastor" },
+] as const;
+export const CHURCH_NAME = "God's House of Prayer (GHOP)";

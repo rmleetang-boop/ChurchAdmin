@@ -11,6 +11,7 @@ import "./styles/light-theme.css";
 import "./styles/dashboard.css";
 import "./styles/departments.css";
 import "./styles/quiet-luxury.css";
+import "./styles/whatsapp-automation.css";
 
 const queryClient = new QueryClient();
 
@@ -83,4 +84,3 @@ createRoot(document.getElementById("root")!).render(
     </QueryClientProvider>
   </trpc.Provider>
 );
-

@@ -2,7 +2,7 @@ import { BRANCHES } from "@/data/demo";
 import { FEATURE_STATUS_LABELS, type DepartmentWorkspace } from "@shared/departmentFeatures";
 
 export function exportDepartmentBrief(items: DepartmentWorkspace[], isSample: boolean) {
-  const content = ["# Department feature briefs", "Heirs of Promise Sanctuary", `Exported: ${new Date().toISOString().slice(0, 10)}`,
+  const content = ["# Department feature briefs", "God's House of Prayer (GHOP)", `Exported: ${new Date().toISOString().slice(0, 10)}`,
     isSample ? "Sample workspace — share this file with your development team. This has not been sent automatically." : "Share this brief with the development team. Requests describe desired functionality, not automatically generated features.",
     ...items.map(dept => [
       `\n## ${dept.name}`, `Branch: ${BRANCHES[dept.branchId - 1]}`, `Leader: ${dept.leadName}`, `Purpose: ${dept.description || "Not specified"}`,

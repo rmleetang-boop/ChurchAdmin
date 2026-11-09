@@ -3,12 +3,19 @@
   "typography": {
     "headings": {
       "fontFamily": "'Playfair Display', serif",
-      "weights": ["400", "500", "600"],
+      "weights": [
+        "400",
+        "500",
+        "600"
+      ],
       "description": "Elegant, quiet luxury serif for headings (H1, H2, H3). Brings a premium, editorial feel without overwhelming the dashboard."
     },
     "body": {
       "fontFamily": "'Albert Sans', sans-serif",
-      "weights": ["400", "500"],
+      "weights": [
+        "400",
+        "500"
+      ],
       "description": "Clean, highly readable sans-serif for body text. Provides a modern structural contrast to the elegant serif headings."
     },
     "monospace": {
@@ -19,15 +26,17 @@
   "colors": {
     "background": "#FFFFFF",
     "surface": "#FFFFFF",
-    "surface_secondary": "#FAFAF8",
-    "accent_primary": "#D4C4A8",
-    "accent_strong": "#B0A392",
-    "accent_soft": "#F6F4F0",
+    "surface_secondary": "#FBFAF7",
+    "accent_primary": "#26734D",
+    "accent_strong": "#18563A",
+    "accent_soft": "#EAF4EE",
     "text_primary": "#2A2624",
     "text_secondary": "#7A7369",
     "border_light": "#EFECE6",
     "border_strong": "#E0DACF",
-    "description": "Warm whites, subtle champagne accents, and espresso text for a quiet luxury aesthetic. Avoid harsh blacks and bright tech-greens."
+    "description": "GHOP palette: leafy green, warm gold, royal purple, and clean white as the default surface.",
+    "accent_gold": "#C59A2B",
+    "accent_purple": "#7650A4"
   },
   "visual_enhancers": {
     "shadows": {
@@ -61,20 +70,14 @@
   },
   "data_guidelines": {
     "names": "Preserve Congolese and South African sample names.",
-    "pastor": "Ensure 'Pastor Domique Somwe' is retained.",
+    "pastor": "Use Pastor Daniel Katshing and include Pastor Phiwe Katshing as a second leadership profile.",
     "content": "Keep existing church flows, metrics, and pulse ring exactly as they are structurally."
   },
   "instructions_to_main_agent": [
-    "Modify /app/client/src/index.css and /app/client/src/styles/*.css to implement the color tokens and typography changes.",
-    "Replace 'Albert Sans' headings with 'Playfair Display' via Google Fonts import.",
-    "Adjust CSS variables: --accent, --gold to champagne/taupe values.",
-    "Adjust --bg, --surface to #FFFFFF, and --surface-2 to #FAFAF8.",
-    "Adjust --text to #2A2624 (espresso).",
-    "Refine box-shadows to be extremely subtle to give the 'finely detailed cards' look.",
-    "DO NOT use complete transparent background in header, overlays, any surface that has content under it.",
-    "Apply guidelines assuming the target files are .js files (no structural HTML changes to .js files, just class and css token updates).",
-    "Ensure 'data-testid' attributes are strictly untouched."
+    "Use the GHOP brand palette: green #26734D, gold #C59A2B, purple #7650A4, and white #FFFFFF.",
+    "Keep white as the default surface and retain responsive layouts and existing data-testid attributes.",
+    "Display both Pastor Daniel Katshing and Pastor Phiwe Katshing in church leadership profiles."
   ],
-  "GENERAL UI UX DESIGN GUIDELINES": "All interactive and key informational elements MUST include a `data-testid` attribute to facilitate robust automated testing. Ensure a quiet luxury aesthetic: warm whites, subtle champagne accents, elegant headings, and finely detailed cards.",
-  "UNIVERSAL GUIDELINES FOR MAIN AGENT": "Do not alter the existing functionalities, routes, layout structure, or sample data. Implement purely cosmetic refinement of CSS variables, font families, box-shadows, and borders to achieve 'Quiet luxury'."
+  "GENERAL UI UX DESIGN GUIDELINES": "All interactive and key informational elements MUST include a data-testid attribute. Use the GHOP green, gold, purple, and white palette with readable contrast.",
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": "Preserve existing application routes and functionality while following GHOP branding and the requested church color palette."
 }

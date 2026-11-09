@@ -1,4 +1,4 @@
-# ChurchFlow Admin (Heirs of Promise Sanctuary) — Fly.io deployment
+# ChurchFlow Admin (God's House of Prayer (GHOP)) — Fly.io deployment
 
 ## Problem statement
 https://heirsofpromise-sanctuary.fly.dev/ was not launching. Fix it (Fly token provided).
@@ -82,7 +82,7 @@ Latest user instruction: "No testing needed for now". No further testing was per
 ## White dashboard and department feature briefs (2026-09-07, current session)
 
 ### User request and final choices
-- "Use Pastor Domique Somwe. Use Congolese names and South African names as sample data. Have a white background instead."
+- "Use Pastor Daniel Katshing. Use Congolese names and South African names as sample data. Have a white background instead."
 - User supplied a detailed modular mobile-fintech dashboard reference: greeting, circular score, thin trend graph, four-column metrics, goal-progress card, recommendation card, four quick actions and five-item bottom navigation. Adapt it to the church app's functionality, with full, proportional phone and desktop layouts; do not create a phone mockup or a finance app.
 - Dashboard focus confirmed: "Yes—church health, attendance trends, giving goals, follow-up alerts, and ministry quick actions".
 - Department requirement changed from AI generation to: "Rather than ai, they can define the features needed and dev team will update the platform."
@@ -97,7 +97,7 @@ Latest user instruction: "No testing needed for now". No further testing was per
 - Adopted user's supplied design direction directly; no design-agent defaults. White background, sans-serif typography, semantic accent tokens, light layered cards, responsive grids and safe-area-aware mobile navigation. No fake OS status bar or phone frame inside the app.
 
 ### Implemented
-- New `client/src/components/dashboard/DashboardShell.tsx`: white desktop sidebar, mobile navigation dialog, five-item bottom navigation, working route links, branch selector, search, notifications shortcuts and pastor profile. Exact name is centralized in `data/navigation.ts` as **Pastor Domique Somwe**.
+- New `client/src/components/dashboard/DashboardShell.tsx`: white desktop sidebar, mobile navigation dialog, five-item bottom navigation, working route links, branch selector, search, notifications shortcuts and pastor profile. Exact name is centralized in `data/navigation.ts` as **Pastor Daniel Katshing**.
 - New `pages/ChurchOverview.tsx`, `components/dashboard/PulseChart.tsx`, `data/dashboardMetrics.ts`: branch-aware church pulse ring with calculation explanation, attendance sparkline and 6/12-week chart, four summary metrics, giving-goal card, care recommendation, four ministry shortcuts, upcoming events, member follow-up/profile links, branch snapshot and CSV overview export. Dashboard values are derived consistently from the existing sample member/pledge data.
 - Each admin section now has its own URL: `/`, `/people`, `/attendance`, `/giving`, `/projects`, `/events`, `/communications`, `/sermons`, `/departments`, `/volunteers`, `/care`. `/member` remains a separate experience. Invalid routes retain NotFound behavior.
 - `data/demo.ts`: replaced Nigerian/Ghanaian/mixed name pools with paired Congolese and South African name pools; updated names in giving, projects, care, member greeting/notifications and sermons. Removed superseded dashboard/department implementations and their old names from Home.tsx.
@@ -126,7 +126,7 @@ Latest user instruction: "No testing needed for now". No further testing was per
 
 ### Original request and explicit preference
 - User: "Good changes but the premium feeling and exclusivity are lost. It feels simple, plain. I need a more comestic implementation without doing too much".
-- Selected direction: "Quiet luxury: warm whites, subtle champagne accents, elegant headings, and finely detailed cards".
+- Selected direction: "Quiet luxury: green, gold, purple, and white accents, elegant headings, and finely detailed cards".
 - Keep white backgrounds, current features, sample names, and full-width responsive structure. The earlier "No testing needed" instruction remains in effect.
 
 ### Implemented
@@ -136,7 +136,7 @@ Latest user instruction: "No testing needed for now". No further testing was per
 - White backgrounds, warm-white secondary surfaces, espresso text, champagne accents, and darker bronze chart strokes/labels for readable contrast.
 - Refined cards with delicate borders, diffused shadows, a fine metric-card highlight, and restrained hover movement. Giving cards, department cards, forms, navigation, avatars and the member experience share the same visual finish.
 - Champagne primary buttons use espresso lettering rather than low-contrast white text. Success/error status distinctions remain readable.
-- Existing responsive grid dimensions, page widths, mobile navigation, Pastor Domique Somwe, and Congolese/South African sample names are preserved.
+- Existing responsive grid dimensions, page widths, mobile navigation, Pastor Daniel Katshing, and Congolese/South African sample names are preserved.
 
 ### Build / verification boundary
 - Production assets rebuilt successfully with `yarn run build`; the running static-serving preview reads the updated assets without requiring a server restart.
