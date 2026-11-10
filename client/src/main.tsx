@@ -12,6 +12,7 @@ import "./styles/dashboard.css";
 import "./styles/departments.css";
 import "./styles/quiet-luxury.css";
 import "./styles/whatsapp-automation.css";
+import "./styles/mobile-polish.css";
 
 const queryClient = new QueryClient();
 
