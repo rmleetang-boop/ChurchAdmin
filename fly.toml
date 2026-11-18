@@ -1,10 +1,10 @@
-# fly.toml app configuration for ChurchAdmin (GHOP).
+# fly.toml app configuration file generated for ghop-admin on 2026-11-09T16:53:07Z
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'churchadmin'
-primary_region = 'iad'
+app = 'ghop-admin'
+primary_region = 'jnb'
 
 [build]
   dockerfile = 'Dockerfile'
