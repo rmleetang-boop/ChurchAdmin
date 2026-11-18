@@ -26,8 +26,8 @@ export type Member = {
   notes: string;
 };
 
-export const BRANCHES = ["Milnerton", "Bellville", "Eastgate", "Kinshasa", "Lubumbashi"] as const;
-export const DEPARTMENTS = ["Worship & Creative", "Children's Church", "Welcome & Hospitality", "Media & Production", "Intercessors", "Ushering", "Youth Ministry", "Outreach"] as const;
+export const BRANCHES = ["GHOP"] as const;
+export const DEPARTMENTS = ["Finance", "Attendance", "Usher", "Cleaning", "Choir", "Charity", "Fundraising", "Youth", "Men", "Women", "Media", "Hospitality", "Intercessor", "Sunday School", "Moderation"] as const;
 export const STATUSES: MemberStatus[] = ["Active", "Visitor", "Inactive", "Needs follow-up"];
 export const AGE_GROUPS: AgeGroup[] = ["Children", "Youth", "Young adults", "Adults", "Seniors"];
 export const GENDERS: Gender[] = ["Female", "Male"];
