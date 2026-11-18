@@ -1,3 +1,4 @@
+import { profilesRouter } from "./profiles";
 import { passwordLogin } from "./passwordLogin";
 import { TRPCError } from "@trpc/server";
 import { accessRouter, rightsFor } from "./teamAccess";
@@ -24,6 +25,7 @@ const projectInput = z.object({
 });
 
 export const appRouter = router({
+  profiles: profilesRouter,
   reports: reportsRouter,
   teamAccess: accessRouter,
   system: systemRouter,

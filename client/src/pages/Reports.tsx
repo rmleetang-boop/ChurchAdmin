@@ -2,6 +2,7 @@ import { Setup, TeamManagement, ClaimInvitation } from "./TeamSetup";
 import type { Rights } from "@shared/access";
 import { useState, type FormEvent } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
+import ProfileForm, { MemberLookup } from "./Profile";
 import Welcome from "./Welcome";
 import { ArrowUpRight, Banknote, CalendarCheck, Handshake, Sparkles, Music, HeartHandshake, Coins, Sprout, Users, Flower2, Radio, Coffee, Flame, BookOpen, Mic, LayoutDashboard } from "lucide-react";
 const teamIcons = { Finance: Banknote, Attendance: CalendarCheck, Usher: Handshake, Cleaning: Sparkles, Choir: Music, Charity: HeartHandshake, Fundraising: Coins, Youth: Sprout, Men: Users, Women: Flower2, Media: Radio, Hospitality: Coffee, Intercessor: Flame, "Sunday School": BookOpen, Moderation: Mic };
@@ -9,6 +10,7 @@ import { trpc } from "@/lib/trpc";
 import {
   attendanceCount,
   fields,
+  dateFields,
   moneyFields,
   numberFields,
   teams,
@@ -150,7 +152,7 @@ function ReportForm({
             <label key={field}>
               {field}
               {moneyFields.has(field) && " (R)"}
-              {numberFields.has(field) || moneyFields.has(field) ? (
+              {dateFields.has(field) ? <input type="date" value={details[field] ?? ""} onChange={e=>setDetails({...details,[field]:e.target.value})}/> : numberFields.has(field) || moneyFields.has(field) ? (
                 <input
                   type="number"
                   min="0"
@@ -453,12 +455,13 @@ function Workspace({
 }
 export default function Reports() {
   const auth = useAuth();
+  const profile = trpc.profiles.mine.useQuery(undefined,{enabled:!!auth.user,retry:false});
   const access = trpc.reports.access.useQuery(undefined, {
-    enabled: !!auth.user,
+    enabled: !!auth.user && !!profile.data,
     retry: false,
   });
   const ownerSetup = trpc.teamAccess.setupAvailable.useQuery(undefined, {
-    enabled: !!auth.user,
+    enabled: !!auth.user && !!profile.data,
     retry: false,
   });
   const path = window.location.pathname;
@@ -470,8 +473,9 @@ export default function Reports() {
         <img width="48" height="48" src="/ghop-emblem.png" alt="GHOP"/>
         <span>God’s House of Prayer Ministries</span>
         {(ownerSetup.data || access.data?.pastor) && <a href="/setup">Church setup</a>}
-        {auth.user && (
+        {profile.data && (
           <>
+            <a href="/profile">My profile</a>
             <a href="/">Workspaces</a>
             <a href="/member">Member workspace</a>
             {access.data &&
@@ -487,6 +491,7 @@ export default function Reports() {
                     <a href="/care">Care inbox</a>
                   </>
                 )}
+                <a href="/records">Member records</a>
                 <a href="/sermons">Sermons</a>
                 <a href="/whatsapp-automation">WhatsApp</a>
               </>
@@ -501,10 +506,12 @@ export default function Reports() {
           </button>
         )}
       </nav>
-      {auth.user && <ClaimInvitation />}
-      {path === "/setup" && (ownerSetup.data || access.data?.pastor) ? (
+      {profile.data && <ClaimInvitation />}
+      {profile.isError ? <section className="report-card" role="alert"><p>{profile.error.message}</p><button onClick={()=>void profile.refetch()}>Try again</button></section> : profile.isPending ? <p>Opening your profile…</p> : !profile.data || path === "/profile" ? (
+        <ProfileForm profile={profile.data} email={auth.user.email ?? ""} onSaved={async()=>{await profile.refetch();}}/>
+      ) : path === "/setup" && (ownerSetup.data || access.data?.pastor) ? (
         <Setup apply={ownerSetup.data === true} />
-      ) : path === "/member" ? (
+      ) : access.data?.pastor && path === "/records" ? <MemberLookup/> : path === "/member" ? (
         <MemberHome />
       ) : access.data?.pastor &&
         auth.user.role === "admin" &&
@@ -520,7 +527,7 @@ export default function Reports() {
         <WhatsAppAutomation />
       ) : access.data && path === "/permissions" ? (
         <TeamManagement rights={access.data} />
-      ) : access.data ? (
+      ) : access.data && !access.data.pastor && !access.data.teams.length ? <MemberHome /> : access.data ? (
         <Workspace
           rights={access.data}
           pastor={access.data.pastor}

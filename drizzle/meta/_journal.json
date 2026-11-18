@@ -85,6 +85,13 @@
       "when": 1795008421909,
       "tag": "0011_team_permissions",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "5",
+      "when": 1795025304401,
+      "tag": "0012_member_profiles",
+      "breakpoints": true
     }
   ]
 }

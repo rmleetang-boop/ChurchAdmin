@@ -24,6 +24,7 @@ const meeting = [
   "Activities",
   "Participation",
   "Contributions",
+  "Meeting day",
   "Next meeting",
 ];
 export const fields: Record<Team, string[]> = {
@@ -35,35 +36,97 @@ export const fields: Record<Team, string[]> = {
     "Amount allocated",
   ],
   Attendance: ["Service or gathering", ...attendance],
-  Usher: ["Duty positions", "Service observations", ...attendance],
-  Cleaning: ["Team on duty", "Areas completed", "Supplies needed"],
-  Choir: ["Service leader", "Repertoire", "Rehearsal and performance"],
+  Usher: [
+    "Team attendance",
+    "Rent contribution",
+    "Material contributions",
+    "Duty positions",
+    "Service observations",
+    ...attendance,
+  ],
+  Cleaning: [
+    "Team attendance",
+    "Rent contribution",
+    "Team on duty",
+    "Areas completed",
+    "Supplies needed",
+  ],
+  Choir: [
+    "Team attendance",
+    "Rent contribution",
+    "Opportunities",
+    "Service leader",
+    "Repertoire",
+    "Rehearsal and performance",
+  ],
   Charity: [
+    "Deputy",
+    "Team attendance",
+    "Rent contribution",
+    "Distribution date",
+    "Food",
+    "Clothing",
+    "Shoes",
     "Distribution activity",
     "Items distributed",
     "Households served",
     "Outstanding needs",
   ],
-  Fundraising: ["Campaign or event", "Amount pledged", "Outstanding pledges"],
+  Fundraising: [
+    "Event date",
+    "Fundraising activities",
+    "Campaign or event",
+    "Amount pledged",
+    "Outstanding pledges",
+  ],
   Youth: meeting,
   Men: meeting,
-  Women: meeting,
-  Media: ["Duty assignments", "Equipment used", "Technical issues"],
+  Women: [...meeting, "Monthly contributions"],
+  Media: [
+    "Team attendance",
+    "Duty assignments",
+    "Equipment used",
+    "Technical issues",
+  ],
   Hospitality: [
+    "Visitor details",
+    "Rent contribution",
     "Visitors welcomed",
     "Welcome activities",
     "Follow-up required",
   ],
-  Intercessor: ["Prayer programme", "Teaching focus", "Prayer points"],
+  Intercessor: [
+    "Session time",
+    "Team attendance",
+    "Offering or contribution",
+    "Prayer programme",
+    "Teaching focus",
+    "Prayer points",
+  ],
   "Sunday School": [
+    "Offering",
+    "Rent contribution",
     "Teacher",
     "Class",
     "Lesson",
     "Children present",
     "Homework",
   ],
-  Moderation: ["Moderator", "Service time", "Programme", "Prayer points"],
+  Moderation: [
+    "Team attendance",
+    "Moderator",
+    "Service time",
+    "Programme",
+    "Prayer points",
+  ],
 };
+for (const team of teams)
+  fields[team] = ["Department leader", ...fields[team], "Comments"];
+export const dateFields = new Set([
+  "Distribution date",
+  "Event date",
+  "Meeting day",
+]);
 export const numberFields = new Set([
   ...attendance,
   "Households served",
@@ -71,6 +134,10 @@ export const numberFields = new Set([
   "Participation",
 ]);
 export const moneyFields = new Set([
+  "Rent contribution",
+  "Monthly contributions",
+  "Offering",
+  "Offering or contribution",
   "Amount pledged",
   "Outstanding pledges",
   "Contributions",
@@ -100,6 +167,9 @@ export const reportInput = z
     for (const [field, value] of Object.entries(r.details)) {
       if (
         !fields[r.team].includes(field) ||
+        (value &&
+          dateFields.has(field) &&
+          !reportDay.safeParse(value).success) ||
         (value && numberFields.has(field) && !/^\d{1,7}$/.test(value)) ||
         (value &&
           moneyFields.has(field) &&

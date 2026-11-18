@@ -221,3 +221,13 @@ export const ministryAccess=mysqlTable("ministry_access",{
   email:varchar("email",{length:254}).notNull(),role:varchar("role",{length:20}).notNull(),
   openId:varchar("open_id",{length:64}), invitation:varchar("invitation_hash",{length:64}),
 },t=>[uniqueIndex("ministry_scope_email").on(t.scope,t.email),index("ministry_identity").on(t.openId)]);
+
+export const memberProfiles = mysqlTable("member_profiles", {
+  userId: int("user_id").primaryKey().references(() => users.id),
+  fullName: varchar("full_name", { length: 160 }).notNull(),
+  phone: varchar("phone", { length: 32 }).notNull(),
+  birthDate: varchar("birth_date", { length: 10 }).notNull(),
+  address: varchar("address", { length: 350 }).notNull(),
+  household: varchar("household", { length: 32 }).notNull(),
+  householdSize: int("household_size"),
+});
