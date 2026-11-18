@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { index, int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
@@ -206,3 +206,11 @@ export type PrayerRequest = typeof prayerRequests.$inferSelect;
 export type PrayerReply = typeof prayerReplies.$inferSelect;
 export type Testimony = typeof testimonies.$inferSelect;
 export type Sermon = typeof sermons.$inferSelect;
+
+export const ministryReports = mysqlTable("ministry_reports", {
+  key: varchar("report_key", {length:36}).primaryKey(),
+  team: varchar("team",{length:40}).notNull(), day: varchar("report_day",{length:10}).notNull(),
+  author: int("author").notNull(), activity: varchar("activity",{length:200}).notNull(),
+  details: text("details").notNull(), needs: text("needs").notNull(), next: text("next_action").notNull(),
+  received: int("received_cents").notNull(), spent: int("spent_cents").notNull(),
+}, table => [index("idx_ministry_reports_month").on(table.day, table.team)]);

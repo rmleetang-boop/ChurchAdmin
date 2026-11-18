@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ArrowLeft, ArrowRight, Plus, Send, X } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
-import { BRANCHES } from "@/data/demo";
+
 import { departmentInput, type DepartmentInput } from "@shared/departmentFeatures";
 import { blankFeature, FeatureFields } from "./FeatureFields";
 
@@ -31,7 +31,7 @@ export const DepartmentForm = ({ open, onClose, onSave, pending, branchId, isSam
         <div className="form-two-col"><div><label htmlFor="department-lead">Department leader *</label><input id="department-lead" data-testid="department-lead-input" required minLength={2} maxLength={160} value={draft.leadName} onChange={e => setDraft({ ...draft, leadName: e.target.value })} placeholder="e.g. Nadine Mukendi" /></div></div>
         <label htmlFor="department-purpose">Purpose <small>Optional</small></label><textarea id="department-purpose" data-testid="department-purpose-input" maxLength={1000} rows={3} value={draft.description} onChange={e => setDraft({ ...draft, description: e.target.value })} placeholder="What does this department do for your church family?" />
       </> : <>
-        <div className="department-brief-summary" data-testid="department-brief-summary"><strong>{draft.name}</strong><span>{BRANCHES[draft.branchId - 1]} · {draft.leadName}</span></div>
+        <div className="department-brief-summary" data-testid="department-brief-summary"><strong>{draft.name}</strong><span>{"GHOP"} · {draft.leadName}</span></div>
         {draft.features.map((feature, i) => <FeatureFields key={i} index={i} value={feature} onChange={next => setDraft({ ...draft, features: draft.features.map((f, j) => i === j ? next : f) })} onRemove={draft.features.length > 1 ? () => setDraft({ ...draft, features: draft.features.filter((_, j) => i !== j) }) : undefined} />)}
         {draft.features.length < 10 && <button type="button" className="button button-ghost add-feature-field" data-testid="add-another-feature" onClick={() => setDraft({ ...draft, features: [...draft.features, blankFeature()] })}><Plus size={16} />Add another feature</button>}
         <p className="form-note" data-testid="department-request-disclaimer">{isSample ? "Saved in this browser's sample workspace. Export the brief to share with your development team." : "Requests are saved for review. New features become available only after your development team builds them."}</p>

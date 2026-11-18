@@ -1,72 +1,142 @@
-import { useState } from "react";
-import { useAuth } from "@/_core/hooks/useAuth";
+import { useState, type FormEvent } from "react";
 import { trpc } from "@/lib/trpc";
-import { Bell, CalendarDays, Check, ChevronRight, CircleDollarSign, Clock3, Download, EyeOff, HeartHandshake, History, Home, LockKeyhole, MessageSquareHeart, Send, Smartphone, Sparkles, WalletCards } from "lucide-react";
-import { toast } from "sonner";
-
-type MemberTab = "Home" | "Giving" | "Attendance" | "Notifications" | "Care";
-
-type Prayer = { title: string; request: string; status: "New" | "We are praying" | "Answered"; date: string; anonymous?: boolean; replies?: { message: string; leaderName?: string | null; date: string }[] };
-type Testimony = { title: string; story: string; status: "Submitted" | "Reviewing" | "Published"; date: string };
-
-const givingHistory = [
-  { date: "Jun 23, 2024", fund: "Sunday offering", amount: "R35,000", method: "Card", ref: "CF-84291" },
-  { date: "Jun 16, 2024", fund: "New auditorium chairs", amount: "R50,000", method: "Bank transfer", ref: "CF-83720" },
-  { date: "Jun 02, 2024", fund: "Tithe", amount: "R120,000", method: "Card", ref: "CF-82114" },
-];
-
-const attendanceHistory = [
-  { date: "Jun 30, 2024", service: "Sunday worship", response: "Attended in person", tone: "green" },
-  { date: "Jun 23, 2024", service: "Sunday worship", response: "Joined online", tone: "purple" },
-  { date: "Jun 16, 2024", service: "Sunday worship", response: "Attended in person", tone: "green" },
-  { date: "Jun 09, 2024", service: "Midweek worship", response: "Attended in person", tone: "green" },
-];
-
-const startingNotifications = [
-  { title: "A reply to your prayer request", body: "We prayed for your mother at Tuesday's intercessors meeting. Trusting God for her strength and healing — you are not alone.", type: "Care", time: "Jun 19 · 9:02 AM", unread: true },
-  { title: "Sunday service reminder", body: "Worship begins at 10:00 AM this Sunday. Let us know if you are joining us.", type: "Event", time: "Today · 8:30 AM", unread: true },
-  { title: "A note from Pastor Daniel Katshing", body: "Thank you for serving with the welcome team. Your care makes a difference.", type: "Message", time: "Yesterday · 6:12 PM", unread: true },
-  { title: "New auditorium chairs", body: "The project is now 64% funded. You can contribute securely from your giving history.", type: "Giving", time: "Jun 22 · 10:00 AM", unread: false },
-];
 
 export default function MemberHome() {
-  const { isAuthenticated } = useAuth();
-  const prayerMutation = trpc.member.submitPrayer.useMutation();
-  const testimonyMutation = trpc.member.submitTestimony.useMutation();
-  const [tab, setTab] = useState<MemberTab>("Home");
-  const [response, setResponse] = useState<string | null>(null);
-  const [notifications, setNotifications] = useState(startingNotifications);
-  const [prayers, setPrayers] = useState<Prayer[]>([
-    { title: "Family health", request: "Please pray for my mother as she continues her treatment.", status: "We are praying", date: "Jun 18, 2024", replies: [{ message: "We prayed for your mother at Tuesday's intercessors meeting. Trusting God for her strength and healing — you are not alone.", leaderName: "Pastor Parfait", date: "Jun 19, 2024" }] },
-  ]);
-  const [testimonies, setTestimonies] = useState<Testimony[]>([]);
-  const [prayerOpen, setPrayerOpen] = useState(false);
-  const [testimonyOpen, setTestimonyOpen] = useState(false);
-  const [prayerForm, setPrayerForm] = useState({ title: "", request: "", private: true, anonymous: false });
-  const [testimonyForm, setTestimonyForm] = useState({ title: "", story: "", permission: false });
-
-  const declare = (value: string) => { setResponse(value); toast.success("Attendance response saved", { description: value }); };
-  const unreadCount = notifications.filter(item => item.unread).length;
-  const submitPrayer = () => { if (!prayerForm.title.trim() || prayerForm.request.trim().length < 5) return toast.error("Please add a title and prayer request"); if (isAuthenticated) prayerMutation.mutate({ title: prayerForm.title, request: prayerForm.request, isPrivate: prayerForm.private || prayerForm.anonymous, isAnonymous: prayerForm.anonymous }); setPrayers(current => [{ title: prayerForm.title, request: prayerForm.request, status: "New", date: "Just now", anonymous: prayerForm.anonymous }, ...current]); const wasAnonymous = prayerForm.anonymous; setPrayerForm({ title: "", request: "", private: true, anonymous: false }); setPrayerOpen(false); toast.success(wasAnonymous ? "Anonymous prayer request sent" : "Prayer request sent", { description: wasAnonymous ? "Your name is hidden from leaders. You can still follow its status here." : "Your leaders have received it." }); };
-  const submitTestimony = () => { if (!testimonyForm.title.trim() || testimonyForm.story.trim().length < 10) return toast.error("Please tell us a little more about your testimony"); if (isAuthenticated) testimonyMutation.mutate({ title: testimonyForm.title, story: testimonyForm.story, permissionToShare: testimonyForm.permission }); setTestimonies(current => [{ title: testimonyForm.title, story: testimonyForm.story, status: "Submitted", date: "Just now" }, ...current]); setTestimonyForm({ title: "", story: "", permission: false }); setTestimonyOpen(false); toast.success("Testimony submitted", { description: "The church office will review it with care." }); };
-
-  const renderHome = () => <>
-    <div className="member-welcome"><div><div className="eyebrow" data-testid="member-church-name">GOD'S HOUSE OF PRAYER · GHOP</div><h1 data-testid="member-greeting">Good morning, Chantal</h1><p data-testid="member-welcome-description">Your place to stay connected, participate, and grow with your church family.</p></div><span className="member-spark"><Sparkles size={19} /></span></div>
-    <section className="member-stat-grid"><button data-testid="member-giving-shortcut" onClick={() => setTab("Giving")}><WalletCards size={17} /><strong>R205,000</strong><span>Total giving · View history</span></button><button data-testid="member-attendance-shortcut" onClick={() => setTab("Attendance")}><CalendarDays size={17} /><strong>86%</strong><span>Attendance · View history</span></button><button data-testid="member-notifications-shortcut" onClick={() => setTab("Notifications")}><Bell size={17} /><strong>{unreadCount} new</strong><span>Personal notifications</span></button></section>
-    <section className="member-card featured-member-card"><div className="member-card-top"><div><div className="eyebrow" data-testid="member-next-service-label">THIS SUNDAY</div><h2 data-testid="member-next-service-title">Worship service</h2></div><CalendarDays size={19} /></div><p data-testid="member-service-time">10:00 AM · Main auditorium and online</p><div className="member-response-grid"><button data-testid="member-attending-button" className={response === "attending" ? "member-response active" : "member-response"} onClick={() => declare("attending")}><span>Yes, I’m coming</span></button><button data-testid="member-online-button" className={response === "online" ? "member-response active" : "member-response"} onClick={() => declare("online")}><span>I’ll join online</span></button><button data-testid="member-not-attending-button" className={response === "not_attending" ? "member-response muted active" : "member-response muted"} onClick={() => declare("not_attending")}><span>Not this week</span></button></div></section>
-    <div className="member-section-heading"><div><div className="eyebrow" data-testid="member-projects-eyebrow">GIVE WITH PURPOSE</div><h2 data-testid="member-projects-title">Active projects</h2></div><button data-testid="member-giving-history-button" onClick={() => setTab("Giving")}>View history <ChevronRight size={14} /></button></div><section className="member-project-card"><div className="member-project-icon"><CircleDollarSign size={19} /></div><div className="member-project-body" data-testid="member-project-summary"><h3>New auditorium chairs</h3><p>Help us make room for more people.</p><div className="member-project-progress"><div><span style={{ width: "64%" }} /></div><b>64%</b></div><small>R2.86M of R4.5M raised</small></div></section>
-    <div className="member-care-shortcuts"><button data-testid="member-prayer-shortcut" onClick={() => setPrayerOpen(true)}><MessageSquareHeart size={17} /><span><strong>Need prayer?</strong> Share what is on your heart.</span><ChevronRight size={15} /></button><button data-testid="member-testimony-shortcut" onClick={() => setTestimonyOpen(true)}><Sparkles size={17} /><span><strong>Share a testimony</strong> Tell us what God has done.</span><ChevronRight size={15} /></button></div>
-  </>;
-
-  const renderGiving = () => <MemberPanel title="Giving history" eyebrow="YOUR STEWARDSHIP" description="Every contribution in one clear, private record." icon={<WalletCards size={18} />}><div className="history-summary"><div><span>This year</span><strong>R205,000</strong></div><div><span>Contributions</span><strong>3</strong></div><div><span>Receipts</span><strong>3 ready</strong></div></div><div className="member-history-list">{givingHistory.map(item => <div className="history-row" key={item.ref}><span className="history-icon giving-history-icon"><CircleDollarSign size={15} /></span><div><strong>{item.fund}</strong><span>{item.date} · {item.method}</span></div><b>{item.amount}</b><small>{item.ref}</small></div>)}</div><div className="member-note"><LockKeyhole size={15} /><span>Your giving history is private to you and authorized church finance leaders.</span></div></MemberPanel>;
-  const renderAttendance = () => <MemberPanel title="Attendance history" eyebrow="YOUR PARTICIPATION" description="See the services you attended or joined online." icon={<History size={18} />}><div className="history-summary"><div><span>This month</span><strong>4 services</strong></div><div><span>In person</span><strong>3</strong></div><div><span>Online</span><strong>1</strong></div></div><div className="member-history-list">{attendanceHistory.map(item => <div className="history-row" key={`${item.date}-${item.service}`}><span className={`history-icon attendance-history-icon ${item.tone}`}><Check size={15} /></span><div><strong>{item.service}</strong><span>{item.date}</span></div><b className="history-status">{item.response}</b></div>)}</div></MemberPanel>;
-  const renderNotifications = () => <MemberPanel title="Notification center" eyebrow="STAY IN THE KNOW" description="Personal messages, event reminders, and updates from your church leaders." icon={<Bell size={18} />}><div className="notification-actions"><span>{unreadCount} unread</span><button onClick={() => setNotifications(current => current.map(item => ({ ...item, unread: false })))}>Mark all as read</button></div><div className="member-notification-list">{notifications.map((item, index) => <button className={`member-notification ${item.unread ? "unread" : ""}`} key={`${item.title}-${index}`} onClick={() => setNotifications(current => current.map((notification, itemIndex) => itemIndex === index ? { ...notification, unread: false } : notification))}><span className={`notification-type notification-${item.type.toLowerCase()}`}>{item.type === "Event" ? <CalendarDays size={15} /> : item.type === "Giving" ? <CircleDollarSign size={15} /> : item.type === "Care" ? <HeartHandshake size={15} /> : <Send size={15} />}</span><span><strong>{item.title}</strong><small>{item.body}</small><em>{item.time}</em></span>{item.unread && <i />}</button>)}</div></MemberPanel>;
-  const renderCare = () => <MemberPanel title="Care & testimonies" eyebrow="YOUR VOICE MATTERS" description="Ask for prayer privately, or share a testimony that can encourage the church family." icon={<HeartHandshake size={18} />}><div className="care-action-grid"><button onClick={() => setPrayerOpen(true)}><span className="care-action-icon prayer"><MessageSquareHeart size={18} /></span><strong>Prayer requests</strong><span>Share a need and follow its care status.</span></button><button onClick={() => setTestimonyOpen(true)}><span className="care-action-icon testimony"><Sparkles size={18} /></span><strong>Testimonies</strong><span>Write down what God has done in your life.</span></button></div><div className="care-list-heading"><h3>Your prayer requests</h3><button onClick={() => setPrayerOpen(true)}>New request <ChevronRight size={13} /></button></div><div className="care-record-list">{prayers.map((prayer, index) => <div className="care-record" key={`${prayer.title}-${index}`}><div><strong>{prayer.title}{prayer.anonymous && <em className="anon-badge"><EyeOff size={10} />Anonymous</em>}</strong><span>{prayer.request}</span>{prayer.replies && prayer.replies.length > 0 && <div className="reply-thread" data-testid={`member-reply-thread-${index}`}>{prayer.replies.map((r, i) => <div className="reply-bubble" key={i}><HeartHandshake size={13} /><div><span>{r.leaderName || "Your leaders"} · {r.date}</span><p>{r.message}</p></div></div>)}</div>}<small>{prayer.date}</small></div><b className={`care-status ${prayer.status === "Answered" ? "answered" : prayer.status === "We are praying" ? "praying" : "new"}`}>{prayer.status}</b></div>)}</div>{testimonies.length > 0 && <><div className="care-list-heading"><h3>Your testimonies</h3></div><div className="care-record-list">{testimonies.map((testimony, index) => <div className="care-record" key={`${testimony.title}-${index}`}><div><strong>{testimony.title}</strong><span>{testimony.story}</span><small>{testimony.date}</small></div><b className="care-status new">{testimony.status}</b></div>)}</div></>}</MemberPanel>;
-
-  const content = tab === "Home" ? renderHome() : tab === "Giving" ? renderGiving() : tab === "Attendance" ? renderAttendance() : tab === "Notifications" ? renderNotifications() : renderCare();
-  return <div className="member-app"><div className="member-app-top"><div className="brand"><span className="brand-mark"><span /></span><div><strong>ChurchFlow</strong><span>MEMBER APP</span></div></div><button className="member-install" onClick={() => toast.info("Install from your browser menu", { description: "Choose Add to Home Screen or Install ChurchFlow." })}><Download size={15} />Install app</button></div><main className="member-app-content"><nav className="member-tabs">{(["Home", "Giving", "Attendance", "Notifications", "Care"] as MemberTab[]).map(item => <button className={tab === item ? "active" : ""} key={item} onClick={() => setTab(item)}>{item === "Home" ? <Home size={15} /> : item === "Giving" ? <WalletCards size={15} /> : item === "Attendance" ? <CalendarDays size={15} /> : item === "Notifications" ? <Bell size={15} /> : <HeartHandshake size={15} />}<span>{item}</span>{item === "Notifications" && unreadCount > 0 && <i>{unreadCount}</i>}</button>)}</nav>{content}<section className="member-help-card"><Smartphone size={18} /><div><strong>Keep ChurchFlow close</strong><span>Add this app to your home screen so attendance reminders and church updates are always one tap away.</span></div></section></main>{prayerOpen && <div className="member-modal-backdrop"><div className="member-modal"><div className="member-modal-header"><div><div className="eyebrow">PRIVATE CARE</div><h2>Share a prayer request</h2></div><button onClick={() => setPrayerOpen(false)}>×</button></div><p>Tell us what you would like your leaders and prayer team to carry with you. Private requests are only visible to authorized care leaders.</p><label>Request title<input value={prayerForm.title} onChange={event => setPrayerForm({ ...prayerForm, title: event.target.value })} placeholder="e.g. Family, work, healing" /></label><label>Your request<textarea value={prayerForm.request} onChange={event => setPrayerForm({ ...prayerForm, request: event.target.value })} placeholder="Write your prayer request here..." /></label><label className="member-check"><input type="checkbox" checked={prayerForm.private} onChange={event => setPrayerForm({ ...prayerForm, private: event.target.checked })} />Keep this request private</label><label className="member-check" data-testid="prayer-anonymous-toggle"><input type="checkbox" data-testid="prayer-anonymous-checkbox" checked={prayerForm.anonymous} onChange={event => setPrayerForm({ ...prayerForm, anonymous: event.target.checked, private: event.target.checked ? true : prayerForm.private })} />Send anonymously — hide my name from leaders</label>{prayerForm.anonymous && <div className="member-note" data-testid="prayer-anonymous-note"><EyeOff size={15} /><span>Leaders will see the request but not who sent it. You can still track its status in your Care tab.</span></div>}<div className="member-modal-footer"><button className="member-cancel" onClick={() => setPrayerOpen(false)}>Cancel</button><button className="member-primary" onClick={submitPrayer}>Send request <Send size={14} /></button></div></div></div>}{testimonyOpen && <div className="member-modal-backdrop"><div className="member-modal"><div className="member-modal-header"><div><div className="eyebrow">CELEBRATE GOD'S GOODNESS</div><h2>Share your testimony</h2></div><button onClick={() => setTestimonyOpen(false)}>×</button></div><p>Your story can encourage someone else. The church office will review it before anything is shared publicly.</p><label>Testimony title<input value={testimonyForm.title} onChange={event => setTestimonyForm({ ...testimonyForm, title: event.target.value })} placeholder="e.g. God answered our prayer" /></label><label>Your story<textarea value={testimonyForm.story} onChange={event => setTestimonyForm({ ...testimonyForm, story: event.target.value })} placeholder="Write your testimony here..." /></label><label className="member-check"><input type="checkbox" checked={testimonyForm.permission} onChange={event => setTestimonyForm({ ...testimonyForm, permission: event.target.checked })} />I give permission for the church to share this testimony after review</label><div className="member-modal-footer"><button className="member-cancel" onClick={() => setTestimonyOpen(false)}>Cancel</button><button className="member-primary" onClick={submitTestimony}>Submit testimony <Send size={14} /></button></div></div></div>}</div>;
-}
-
-function MemberPanel({ title, eyebrow, description, icon, children }: { title: string; eyebrow: string; description: string; icon: React.ReactNode; children: React.ReactNode }) {
-  return <><div className="member-page-heading"><div><div className="eyebrow">{eyebrow}</div><h1>{title}</h1><p>{description}</p></div><span className="member-page-icon">{icon}</span></div>{children}</>;
+  const giving = trpc.member.givingHistory.useQuery(),
+    attendance = trpc.attendance.history.useQuery(),
+    prayers = trpc.member.prayerRequests.useQuery(),
+    notifications = trpc.member.notifications.useQuery();
+  const declare = trpc.attendance.declare.useMutation(),
+    prayer = trpc.member.submitPrayer.useMutation(),
+    testimony = trpc.member.submitTestimony.useMutation();
+  const [status, setStatus] = useState("");
+  async function save(
+    e: FormEvent<HTMLFormElement>,
+    kind: "attendance" | "prayer" | "testimony"
+  ) {
+    e.preventDefault();
+    const form = e.currentTarget,
+      data = new FormData(form);
+    const val = (k: string) => String(data.get(k) || "");
+    setStatus("");
+    try {
+      if (kind === "attendance") {
+        await declare.mutateAsync({
+          serviceDate: new Date(val("day") + "T12:00:00Z"),
+          response: val("response") as "attending" | "online" | "not_attending",
+        });
+        await attendance.refetch();
+      } else if (kind === "prayer") {
+        await prayer.mutateAsync({
+          title: val("title"),
+          request: val("message"),
+          isPrivate: true,
+          isAnonymous: data.has("anonymous"),
+        });
+        await prayers.refetch();
+      } else
+        await testimony.mutateAsync({
+          title: val("title"),
+          story: val("message"),
+          permissionToShare: data.has("permission"),
+        });
+      form.reset();
+      setStatus("Saved.");
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Could not save.");
+    }
+  }
+  return (
+    <>
+      <h1>Member workspace</h1>
+      <p role="status">{status}</p>
+      <section className="report-card">
+        <h2>Attendance</h2>
+        <form onSubmit={e => save(e, "attendance")}>
+          <label>
+            Service date
+            <input name="day" required type="date" />
+          </label>
+          <label>
+            Response
+            <select name="response">
+              <option value="attending">Attending</option>
+              <option value="online">Online</option>
+              <option value="not_attending">Unable to attend</option>
+            </select>
+          </label>
+          <button disabled={declare.isPending}>Save response</button>
+        </form>
+        {attendance.data?.map(r => (
+          <p key={r.id}>
+            {r.serviceDate.toLocaleDateString()} · {r.response}
+          </p>
+        ))}
+      </section>
+      <section className="report-card">
+        <h2>My giving</h2>
+        {giving.data?.map(g => (
+          <p key={g.id}>
+            {g.createdAt.toLocaleDateString()} · R{g.amount}
+          </p>
+        ))}
+        {giving.data?.length === 0 && <p>No contributions recorded.</p>}
+      </section>
+      <section className="report-card">
+        <h2>Notifications</h2>
+        {notifications.data?.map(n => (
+          <p key={n.id}>
+            <strong>{n.title}</strong> {n.body}
+          </p>
+        ))}
+        {notifications.data?.length === 0 && <p>No notifications.</p>}
+      </section>
+      {(["prayer", "testimony"] as const).map(kind => (
+        <section key={kind} className="report-card">
+          <h2>
+            {kind === "prayer" ? "Private prayer request" : "Share a testimony"}
+          </h2>
+          <form onSubmit={e => save(e, kind)}>
+            <label>
+              Title
+              <input name="title" minLength={2} required />
+            </label>
+            <label>
+              Message
+              <textarea
+                name="message"
+                minLength={kind === "prayer" ? 5 : 10}
+                required
+              />
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                name={kind === "prayer" ? "anonymous" : "permission"}
+              />
+              {kind === "prayer"
+                ? "Send anonymously"
+                : "Allow the church to share this testimony"}
+            </label>
+            <button disabled={prayer.isPending || testimony.isPending}>
+              Submit
+            </button>
+          </form>
+          {kind === "prayer" &&
+            prayers.data?.map(r => (
+              <details key={r.id}>
+                <summary>{r.title}</summary>
+                <p>{r.request}</p>
+                {r.replies.map(reply => (
+                  <p key={reply.id}>{reply.message}</p>
+                ))}
+              </details>
+            ))}
+        </section>
+      ))}
+      {[giving, attendance, prayers, notifications].some(q => q.isError) && (
+        <p role="alert">Some records could not be loaded.</p>
+      )}
+    </>
+  );
 }

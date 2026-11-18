@@ -1,0 +1,126 @@
+.ghop-reports {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 24px clamp(16px, 4vw, 48px);
+  color: #172e46;
+  font-family: inherit;
+}
+.ghop-reports nav,
+.report-tools {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+.ghop-reports nav {
+  border-bottom: 1px solid #c9b184;
+  padding-bottom: 16px;
+}
+.ghop-reports nav b {
+  font: 700 26px Georgia;
+}
+.ghop-reports nav button {
+  margin-left: auto;
+}
+.ghop-reports h1,
+.ghop-reports h2,
+.ghop-reports h3 {
+  font-family: Georgia, serif;
+  line-height: 1.2;
+  margin: 0 0 15px;
+}
+.ghop-reports h1 {
+  font-size: clamp(32px, 5vw, 48px);
+}
+.ghop-reports h2 {
+  font-size: 25px;
+}
+.ghop-reports h3 {
+  margin-top: 16px;
+}
+.report-card,
+.report-kpis > div {
+  background: white;
+  border: 1px solid #ddd6c8;
+  border-radius: 14px;
+  padding: 22px;
+  margin: 16px 0;
+}
+.report-grid,
+.report-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr));
+  gap: 16px;
+}
+.ghop-reports label {
+  display: grid;
+  gap: 6px;
+  font-weight: 600;
+}
+.ghop-reports input,
+.ghop-reports select,
+.ghop-reports textarea {
+  background: white;
+  border: 1px solid #a9b3b9;
+  border-radius: 6px;
+  padding: 9px;
+  color: #172e46;
+  font: inherit;
+  min-width: 0;
+}
+.ghop-reports button {
+  background: #13365b;
+  color: white;
+  border: 0;
+  border-radius: 6px;
+  padding: 10px 16px;
+  cursor: pointer;
+}
+.report-card form,
+.report-card fieldset {
+  border: 0;
+  padding: 0;
+}
+.report-card fieldset button {
+  margin-top: 16px;
+}
+.report-kpis strong {
+  display: block;
+  font-size: 23px;
+}
+.ghop-reports details {
+  padding: 12px 0;
+  border-top: 1px solid #ddd;
+}
+.ghop-reports summary {
+  cursor: pointer;
+}
+.ghop-reports dt {
+  font-weight: bold;
+}
+.ghop-reports dd {
+  margin: 0 0 8px;
+  white-space: pre-wrap;
+}
+.ghop-reports [role="alert"] {
+  color: #9c3224;
+}
+.report-table {
+  overflow-x: auto;
+  margin: 12px 0;
+}
+.report-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.report-table td,
+.report-table th {
+  text-align: left;
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
+}
+.report-table caption {
+  text-align: left;
+  font-weight: 600;
+}

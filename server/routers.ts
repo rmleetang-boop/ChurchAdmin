@@ -1,3 +1,5 @@
+import { TRPCError } from "@trpc/server";
+import { reportsRouter, isPastor } from "./reports";
 import { z } from "zod";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
@@ -20,6 +22,7 @@ const projectInput = z.object({
 });
 
 export const appRouter = router({
+  reports: reportsRouter,
   system: systemRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
@@ -70,7 +73,10 @@ export const appRouter = router({
     }),
   }),
   network: router({
-    overview: overseerProcedure.query(() => listChurchNetwork()),
+    overview: protectedProcedure.query(({ctx}) => {
+      if (!isPastor(ctx.user.openId)) throw new TRPCError({code:"FORBIDDEN"});
+      return listChurchNetwork();
+    }),
   }),
   sermons: router({
     list: protectedProcedure.query(() => listSermons()),
