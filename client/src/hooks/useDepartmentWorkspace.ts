@@ -5,7 +5,7 @@ import { trpc } from "@/lib/trpc";
 import { DEPARTMENT_SAMPLES } from "@/data/departmentSamples";
 import { departmentInput, featureInput, FEATURE_STATUSES, type DepartmentInput, type DepartmentWorkspace, type FeatureInput, type FeatureStatus } from "@shared/departmentFeatures";
 
-const STORAGE_KEY = "churchflow-department-workspaces-v1";
+const STORAGE_KEY = "ghop-department-workspaces-v1";
 const storedSchema = z.array(z.object({
   id: z.number(), name: z.string(), leadName: z.string(), branchId: z.number().int().min(1).max(5),
   description: z.string(), memberCount: z.number(), features: z.array(featureInput.extend({

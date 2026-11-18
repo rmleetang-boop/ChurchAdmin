@@ -1,21 +1,21 @@
 import { useState } from "react";
-import { ArrowUpRight, ArrowRight, ArrowDownRight, Users, CalendarCheck, Target, HeartHandshake, ClipboardCheck, Layers3, BookOpen, Info, Download, CalendarDays, Church, GitBranch } from "lucide-react";
+import { ArrowUpRight, ArrowRight, ArrowDownRight, Users, CalendarCheck, Target, HeartHandshake, ClipboardCheck, Layers3, BookOpen, Info, Download, CalendarDays, Church } from "lucide-react";
 import { BRANCHES, compactZar, zar, TODAY, consecutiveMisses } from "@/data/demo";
 import { getDashboardMetrics } from "@/data/dashboardMetrics";
 import { PASTOR_NAME, type Section } from "@/data/navigation";
 import { PulseChart, PulseRing } from "@/components/dashboard/PulseChart";
 
 const upcoming = [
-  { day: 14, title: "Leadership Summit", detail: "09:00 · All branches", type: "Leadership" },
-  { day: 18, title: "Midweek Worship", detail: "18:30 · Milnerton", type: "Worship" },
-  { day: 21, title: "Community Outreach", detail: "10:00 · Bellville", type: "Outreach" },
+  { day: 14, title: "Leadership Summit", detail: "09:00 · GHOP", type: "Leadership" },
+  { day: 18, title: "Midweek Worship", detail: "18:30 · GHOP", type: "Worship" },
+  { day: 21, title: "Community Outreach", detail: "10:00 · GHOP", type: "Outreach" },
 ];
 export default function ChurchOverview({ scope, onNavigate, onOpenMember }: { scope: number | "global"; onNavigate: (section: Section) => void; onOpenMember: (id: number) => void }) {
   const metrics = getDashboardMetrics(scope);
   const [weeks, setWeeks] = useState(12);
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning," : hour < 17 ? "Good afternoon," : "Good evening,";
-  const scopeName = scope === "global" ? "All branches" : BRANCHES[scope - 1];
+  const scopeName = scope === "global" ? "GHOP" : BRANCHES[scope - 1];
   const exportReport = () => {
     const rows = [["Church overview", scopeName], ["Sample data", "Congolese and South African church community"], ["Church pulse", metrics.score], ["Members", metrics.members.length], ["Sunday attendance", metrics.present], ["Giving received (ZAR)", metrics.goal.received], ["Giving goal (ZAR)", metrics.goal.pledged], ["Follow-up queue", metrics.followups.length]];
     const url = URL.createObjectURL(new Blob([rows.map(row => row.join(",")).join("\n")], { type: "text/csv;charset=utf-8" }));
@@ -26,7 +26,7 @@ export default function ChurchOverview({ scope, onNavigate, onOpenMember }: { sc
     <section className="welcome-pulse" aria-label="Church overview greeting"><div className="welcome-pulse-copy"><p className="welcome-greeting" data-testid="dashboard-greeting">{greeting}</p><h1 data-testid="pastor-greeting-name">{PASTOR_NAME}<span className="greeting-dot" aria-hidden="true">.</span></h1><p className="welcome-description" data-testid="dashboard-welcome-description">A clear view of your church. More room to care.</p><span className="welcome-context" data-testid="dashboard-scope"><span className="tiny-dot" />{scopeName} <span>·</span> One church family</span></div><div className="pulse-wrapper"><PulseRing score={metrics.score} /><details className="pulse-explanation"><summary data-testid="pulse-score-info" aria-label="How the church pulse is calculated"><Info size={12} />About your score</summary><p data-testid="pulse-score-explanation">A sample participation indicator: attendance rate (50%), active membership (30%) and giving goal progress (20%). Not an assessment of individual faith.</p></details></div></section>
     <div className="hero-trend"><PulseChart values={metrics.attendance} compact testId="hero-attendance-sparkline" /><div className="hero-trend-caption" data-testid="hero-trend-caption"><span>Small steps. A growing community.</span><span>12-week attendance rhythm</span></div></div>
     <section className="pulse-metrics" aria-label="Key church metrics">{[
-      { id: "members", icon: Users, value: metrics.members.length, label: "Church family", caption: scope === "global" ? "Across 5 branches" : `${scopeName} branch` },
+      { id: "members", icon: Users, value: metrics.members.length, label: "Church family", caption: scope === "global" ? "GHOP" : `${scopeName} branch` },
       { id: "attendance", icon: CalendarCheck, value: metrics.present, label: "Sunday attendance", caption: `${metrics.attendanceRate}% of members` },
       { id: "goal", icon: Target, value: `${metrics.goalProgress}%`, label: "Giving goal", caption: `${compactZar(metrics.goal.received)} received` },
       { id: "followups", icon: HeartHandshake, value: metrics.followups.length, label: "Care follow-ups", caption: "A personal touch" },
@@ -39,7 +39,7 @@ export default function ChurchOverview({ scope, onNavigate, onOpenMember }: { sc
     <div className="overview-detail-grid"><section className="overview-panel"><div className="section-heading"><div><div className="eyebrow" data-testid="attendance-trend-eyebrow">SHOWING UP, TOGETHER</div><h2 data-testid="attendance-trend-title">Attendance rhythm</h2></div><select className="chart-period-select" aria-label="Attendance chart period" data-testid="attendance-chart-period" value={weeks} onChange={e => setWeeks(Number(e.target.value))}><option value={12}>Last 12 weeks</option><option value={6}>Last 6 weeks</option></select></div><div className="attendance-chart-summary" data-testid="attendance-chart-summary"><strong>{metrics.present}<small>people last Sunday</small></strong><span className={metrics.change >= 0 ? "positive-change" : "neutral-change"}>{metrics.change >= 0 ? <ArrowUpRight size={15} /> : <ArrowDownRight size={15} />}{Math.abs(metrics.change)}% <small>vs previous 4 weeks</small></span></div><PulseChart values={metrics.attendance.slice(-weeks)} /><div className="attendance-chart-axis" data-testid="attendance-chart-axis"><span>{weeks} weeks ago</span><span>Sunday gatherings</span><span>This week</span></div></section>
     <section className="overview-panel next-gatherings"><div className="section-heading"><div><div className="eyebrow" data-testid="upcoming-eyebrow">LIFE IN COMMUNITY</div><h2 data-testid="upcoming-title">Coming together</h2></div><button className="text-button" data-testid="view-all-events" onClick={() => onNavigate("Events")}>View all<ArrowUpRight size={14} /></button></div>{upcoming.map((event, i) => <button className="gathering-row" key={event.title} data-testid={`upcoming-event-${i}`} onClick={() => onNavigate("Events")}><span className="gathering-date"><strong>{event.day}</strong><small>SEP</small></span><span className="gathering-info"><strong>{event.title}</strong><small>{event.detail}</small></span><ArrowRight size={15} /></button>)}<div className="gathering-footer" data-testid="gatherings-footer"><Church size={15} />There is a place for everyone.</div></section></div>
     <div className="overview-detail-grid"><section className="overview-panel"><div className="section-heading"><div><div className="eyebrow" data-testid="personal-care-eyebrow">BEHIND EVERY NUMBER, A PERSON</div><h2 data-testid="personal-care-title">A moment to reach out</h2></div><span className="small-count" data-testid="personal-care-count">{metrics.followups.length}</span></div><div>{metrics.followups.slice(0, 3).map(member => <button className="personal-care-row" key={member.id} data-testid={`care-member-${member.id}`} onClick={() => onOpenMember(member.id)}><span className="light-person-avatar">{member.initials}</span><span><strong>{member.name}</strong><small>{member.branch} · {consecutiveMisses(member.attendance)} Sundays missed</small></span><span className="care-row-link">View profile<ArrowUpRight size={14} /></span></button>)}{!metrics.followups.length && <p className="overview-empty-copy" data-testid="no-followups">No members have missed three consecutive Sundays.</p>}</div></section>
-    <section className="overview-panel branch-snapshot"><div className="section-heading"><div><div className="eyebrow" data-testid="branches-eyebrow">ONE VISION. MANY COMMUNITIES.</div><h2 data-testid="branches-title">Our branches</h2></div><GitBranch size={19} /></div>{BRANCHES.filter((_, i) => scope === "global" || scope === i + 1).map(branch => { const count = metrics.members.filter(member => member.branch === branch).length; return <div className="branch-snapshot-row" key={branch} data-testid={`branch-snapshot-${branch.toLowerCase()}`}><span><i />{branch}</span><strong>{count}<small>members</small></strong></div>; })}</section></div>
+    </div>
     <footer className="dashboard-footer" data-testid="dashboard-footer"><span>God's House of Prayer (GHOP)</span><span>Built around people. Rooted in purpose.</span><span>Sample community data</span></footer>
   </div>;
 }
