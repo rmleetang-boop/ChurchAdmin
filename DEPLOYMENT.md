@@ -71,3 +71,7 @@ https://YOUR_UNIQUE_APP_NAME.fly.dev/api/oauth/callback
 ```
 
 If a custom domain is used, register the custom-domain equivalent instead.
+
+## GHOP email sign-in
+
+Set SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY from the ministry's Supabase Auth project, a random JWT_SECRET of at least 32 characters, and DATABASE_URL for the migrated MySQL-compatible database. Provision the client’s accounts in Supabase Auth and verify their emails. Disable public sign-ups for an invitation-only workspace. Set OWNER_OPEN_ID to `ghop:<Supabase user UUID>` for the authorised initial setup operator. That operator signs in, opens Church setup, and assigns the two principal emails. Share each invitation code privately with its intended recipient. Department rights apply after the signed-in recipient claims their code. Set GHOP_MINISTRY_ADDRESS to display the confirmed address on the welcome page.

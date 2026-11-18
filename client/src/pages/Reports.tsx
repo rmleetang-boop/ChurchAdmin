@@ -2,7 +2,9 @@ import { Setup, TeamManagement, ClaimInvitation } from "./TeamSetup";
 import type { Rights } from "@shared/access";
 import { useState, type FormEvent } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { startLogin } from "@/const";
+import Welcome from "./Welcome";
+import { ArrowUpRight, Banknote, CalendarCheck, Handshake, Sparkles, Music, HeartHandshake, Coins, Sprout, Users, Flower2, Radio, Coffee, Flame, BookOpen, Mic, LayoutDashboard } from "lucide-react";
+const teamIcons = { Finance: Banknote, Attendance: CalendarCheck, Usher: Handshake, Cleaning: Sparkles, Choir: Music, Charity: HeartHandshake, Fundraising: Coins, Youth: Sprout, Men: Users, Women: Flower2, Media: Radio, Hospitality: Coffee, Intercessor: Flame, "Sunday School": BookOpen, Moderation: Mic };
 import { trpc } from "@/lib/trpc";
 import {
   attendanceCount,
@@ -223,9 +225,7 @@ function Workspace({
   permitted: Team[];
   rights: Rights;
 }) {
-  const [choice, setChoice] = useState<Team | "Overview">(
-    pastor ? "Overview" : permitted[0]
-  );
+  const [choice, setChoice] = useState<Team | "Overview">();
   const [month, setMonth] = useState(today().slice(0, 7));
   const team = choice === "Overview" ? undefined : choice;
   const query = trpc.reports.list.useQuery(
@@ -234,7 +234,7 @@ function Workspace({
   );
   const utils = trpc.useUtils();
   const approve = trpc.reports.approve.useMutation();
-  if (!choice)
+  if (!choice && !permitted.length && !pastor)
     return (
       <section className="report-card">
         <h2>Department assignment pending</h2>
@@ -243,6 +243,12 @@ function Workspace({
         </p>
       </section>
     );
+  if (!choice) return <section className="department-home">
+    <h1>Your workspace</h1><p>Select a department to open its reports.</p>
+    <div className="department-tiles">
+      {pastor && <button className="pastoral-tile" onClick={()=>setChoice("Overview")}><LayoutDashboard/><span>Pastoral dashboard<small>Church-wide reports</small></span><ArrowUpRight/></button>}
+      {permitted.map(t=>{const Icon=teamIcons[t];return <button key={t} onClick={()=>setChoice(t)}><Icon/><span>{t}<small>{pastor?"Principal administrator":rights.roles[t]}</small></span><ArrowUpRight/></button>})}
+    </div></section>;
   const rows = (query.data ?? []).filter(r => r.status === "submitted");
   const drafts = (query.data ?? []).filter(r => r.status === "draft");
   const reported = new Set(rows.map(r => r.team));
@@ -252,7 +258,7 @@ function Workspace({
     spent = finance.reduce((sum, r) => sum + r.spent, 0);
   return (
     <>
-      <header className="report-tools">
+      <header className="report-tools"><button onClick={()=>setChoice(undefined)}>All workspaces</button>
         <label>
           Workspace
           <select
@@ -456,18 +462,17 @@ export default function Reports() {
     retry: false,
   });
   const path = window.location.pathname;
-  const loginReady = Boolean(
-    import.meta.env.VITE_OAUTH_PORTAL_URL && import.meta.env.VITE_APP_ID
-  );
+  if (auth.loading) return <main className="login-loading" role="status">Opening your workspace…</main>;
+  if (!auth.user) return <Welcome onLogin={() => { void auth.refresh(); }} />;
   return (
     <main className="ghop-reports">
       <nav>
-        <b>GHOP</b>
+        <img width="48" height="48" src="/ghop-emblem.png" alt="GHOP"/>
         <span>God’s House of Prayer Ministries</span>
-        <a href="/setup">Church setup</a>
+        {(ownerSetup.data || access.data?.pastor) && <a href="/setup">Church setup</a>}
         {auth.user && (
           <>
-            <a href="/">Reports</a>
+            <a href="/">Workspaces</a>
             <a href="/member">Member workspace</a>
             {access.data &&
               (access.data.pastor ||
@@ -497,20 +502,8 @@ export default function Reports() {
         )}
       </nav>
       {auth.user && <ClaimInvitation />}
-      {path === "/setup" || (!auth.loading && !auth.user && !loginReady) ? (
+      {path === "/setup" && (ownerSetup.data || access.data?.pastor) ? (
         <Setup apply={ownerSetup.data === true} />
-      ) : auth.loading ? (
-        <p>Loading workspace…</p>
-      ) : !auth.user ? (
-        <section className="report-card">
-          <h1>Church workspace</h1>
-          <p>
-            {loginReady
-              ? "Sign in to open your workspace."
-              : "Church sign-in is awaiting configuration."}
-          </p>
-          {loginReady && <button onClick={startLogin}>Sign in</button>}
-        </section>
       ) : path === "/member" ? (
         <MemberHome />
       ) : access.data?.pastor &&

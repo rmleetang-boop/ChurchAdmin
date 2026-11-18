@@ -33,7 +33,7 @@ export async function rightsFor(openId: string): Promise<Rights> {
     .where(eq(ministryAccess.openId, openId));
   const rights: Rights = { pastor: false, roles: {} };
   for (const row of rows) {
-    if (principals.some(p => p === row.scope) && row.role === "Principal")
+    if ((principals.some(p => p === row.scope) || row.scope === "Pastor Pway") && row.role === "Principal")
       rights.pastor = true;
     if (teams.includes(row.scope as Team) && roles.includes(row.role as Role))
       rights.roles[row.scope as Team] = row.role as Role;
@@ -132,6 +132,7 @@ export const accessRouter = router({
       );
     return rows.map(({ identity, ...r }) => ({
       ...r,
+      team: r.team === "Pastor Pway" ? principals[1] : r.team,
       active: Boolean(identity),
     }));
   }),

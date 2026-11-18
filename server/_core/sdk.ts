@@ -155,6 +155,7 @@ class SDKServer {
 
   private getSessionSecret() {
     const secret = ENV.cookieSecret;
+    if (!secret) throw new Error("Session signing is unavailable");
     return new TextEncoder().encode(secret);
   }
 

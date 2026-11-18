@@ -2,7 +2,7 @@ import { z } from "zod";
 import { teams, type Team } from "./reports";
 
 export const roles = ["Leader", "Data capturer", "Viewer"] as const;
-export const principals = ["Pastor Daniel", "Pastor Pway"] as const;
+export const principals = ["Pastor Daniel", "Pastor Phiwe"] as const;
 export type Role = (typeof roles)[number];
 export const emailInput = z
   .string()

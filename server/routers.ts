@@ -1,3 +1,4 @@
+import { passwordLogin } from "./passwordLogin";
 import { TRPCError } from "@trpc/server";
 import { accessRouter, rightsFor } from "./teamAccess";
 import { reportsRouter } from "./reports";
@@ -27,6 +28,8 @@ export const appRouter = router({
   teamAccess: accessRouter,
   system: systemRouter,
   auth: router({
+    passwordLogin,
+    ministryAddress: publicProcedure.query(() => process.env.GHOP_MINISTRY_ADDRESS?.trim() || null),
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
