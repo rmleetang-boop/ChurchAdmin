@@ -1,4 +1,4 @@
-import { index, int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { uniqueIndex, index, int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
@@ -208,9 +208,16 @@ export type Testimony = typeof testimonies.$inferSelect;
 export type Sermon = typeof sermons.$inferSelect;
 
 export const ministryReports = mysqlTable("ministry_reports", {
+  status:mysqlEnum("report_status",["draft","submitted"]).default("submitted").notNull(),
   key: varchar("report_key", {length:36}).primaryKey(),
   team: varchar("team",{length:40}).notNull(), day: varchar("report_day",{length:10}).notNull(),
   author: int("author").notNull(), activity: varchar("activity",{length:200}).notNull(),
   details: text("details").notNull(), needs: text("needs").notNull(), next: text("next_action").notNull(),
   received: int("received_cents").notNull(), spent: int("spent_cents").notNull(),
 }, table => [index("idx_ministry_reports_month").on(table.day, table.team)]);
+
+export const ministryAccess=mysqlTable("ministry_access",{
+  id:varchar("id",{length:36}).primaryKey(),scope:varchar("scope",{length:40}).notNull(),
+  email:varchar("email",{length:254}).notNull(),role:varchar("role",{length:20}).notNull(),
+  openId:varchar("open_id",{length:64}), invitation:varchar("invitation_hash",{length:64}),
+},t=>[uniqueIndex("ministry_scope_email").on(t.scope,t.email),index("ministry_identity").on(t.openId)]);

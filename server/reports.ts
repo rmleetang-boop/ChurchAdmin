@@ -12,45 +12,46 @@ import {
 import { getDb } from "./db";
 import { protectedProcedure, router } from "./_core/trpc";
 
-export function isPastor(openId: string) {
-  return (
-    Boolean(openId) &&
-    [process.env.GHOP_DANIEL_OPEN_ID, process.env.GHOP_PHIWE_OPEN_ID].includes(
-      openId
-    )
-  );
-}
-export function assignedTeams(openId: string): Team[] {
-  if (isPastor(openId)) return [...teams];
-  const assignments = z
-    .record(z.string(), z.array(z.enum(teams)))
-    .parse(JSON.parse(process.env.GHOP_TEAM_ASSIGNMENTS || "{}"));
-  return Object.hasOwn(assignments, openId) ? assignments[openId] : [];
-}
-const database = async () => {
-  const db = await getDb();
-  if (!db)
-    throw new TRPCError({
-      code: "PRECONDITION_FAILED",
-      message: "The church database connection is pending.",
-    });
-  return db;
-};
-function authorize(openId: string, team?: Team) {
-  const allowed = team
-    ? assignedTeams(openId).includes(team)
-    : isPastor(openId);
-  if (!allowed) throw new TRPCError({ code: "FORBIDDEN" });
-}
+import { database, rightsFor, forbidden } from "./teamAccess";
 export const reportsRouter = router({
-  access: protectedProcedure.query(({ ctx }) => ({
-    pastor: isPastor(ctx.user.openId),
-    teams: assignedTeams(ctx.user.openId),
-  })),
+  access: protectedProcedure.query(async ({ ctx }) => {
+    const rights = await rightsFor(ctx.user.openId);
+    return {
+      ...rights,
+      teams: teams.filter(t => rights.pastor || rights.roles[t]),
+    };
+  }),
+  approve: protectedProcedure
+    .input(z.object({ key: z.string().uuid(), team: z.enum(teams) }))
+    .mutation(async ({ ctx, input }) => {
+      const rights = await rightsFor(ctx.user.openId);
+      if (!rights.pastor && rights.roles[input.team] !== "Leader")
+        throw forbidden();
+      const [result] = await (
+        await database()
+      )
+        .update(ministryReports)
+        .set({ status: "submitted" })
+        .where(
+          and(
+            eq(ministryReports.key, input.key),
+            eq(ministryReports.team, input.team),
+            eq(ministryReports.status, "draft")
+          )
+        );
+      if (!result.affectedRows)
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "This draft is no longer awaiting submission.",
+        });
+      return true;
+    }),
   list: protectedProcedure
     .input(z.object({ month: monthInput, team: z.enum(teams).optional() }))
     .query(async ({ ctx, input }) => {
-      authorize(ctx.user.openId, input.team);
+      const rights = await rightsFor(ctx.user.openId);
+      if (!rights.pastor && (!input.team || !rights.roles[input.team]))
+        throw forbidden();
       const rows = await (
         await database()
       )
@@ -59,6 +60,7 @@ export const reportsRouter = router({
         .where(
           and(
             like(ministryReports.day, input.month + "-%"),
+            input.team ? undefined : eq(ministryReports.status, "submitted"),
             input.team ? eq(ministryReports.team, input.team) : undefined
           )
         )
@@ -71,7 +73,10 @@ export const reportsRouter = router({
   submit: protectedProcedure
     .input(reportInput)
     .mutation(async ({ ctx, input }) => {
-      authorize(ctx.user.openId, input.team);
+      const rights = await rightsFor(ctx.user.openId);
+      const role = rights.roles[input.team];
+      if (!rights.pastor && role !== "Data capturer" && role !== "Leader")
+        throw forbidden();
       const db = await database();
       const details = JSON.stringify(
         Object.fromEntries(
@@ -80,7 +85,11 @@ export const reportsRouter = router({
             .map(k => [k, input.details[k]])
         )
       );
-      const record = { ...input, author: ctx.user.id, details };
+      const status =
+        rights.pastor || role === "Leader"
+          ? ("submitted" as const)
+          : ("draft" as const);
+      const record = { ...input, status, author: ctx.user.id, details };
       await db
         .insert(ministryReports)
         .values(record)
@@ -100,6 +109,6 @@ export const reportsRouter = router({
           message:
             "This report has already been submitted with different entries.",
         });
-      return { key: input.key };
+      return { key: input.key, status };
     }),
 });

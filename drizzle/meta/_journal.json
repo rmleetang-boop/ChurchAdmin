@@ -78,6 +78,13 @@
       "when": 1795008216077,
       "tag": "0010_ministry_reports",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "5",
+      "when": 1795008421909,
+      "tag": "0011_team_permissions",
+      "breakpoints": true
     }
   ]
 }

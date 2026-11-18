@@ -1,3 +1,5 @@
+import { Setup, TeamManagement, ClaimInvitation } from "./TeamSetup";
+import type { Rights } from "@shared/access";
 import { useState, type FormEvent } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
@@ -88,9 +90,11 @@ function FinanceBreakdown({
 }
 function ReportForm({
   team,
+  captureOnly,
   onSaved,
 }: {
   team: Team;
+  captureOnly: boolean;
   onSaved: (day: string) => void;
 }) {
   const submit = trpc.reports.submit.useMutation();
@@ -120,7 +124,9 @@ function ReportForm({
       form.reset();
       setDetails({});
       setKey(crypto.randomUUID());
-      setMessage("Report submitted.");
+      setMessage(
+        captureOnly ? "Draft saved for leader review." : "Report submitted."
+      );
     } catch {
       /* Display the server response below. */
     }
@@ -199,7 +205,9 @@ function ReportForm({
             <textarea name="next" maxLength={2000} />
           </label>
         </div>
-        <button>Submit report</button>
+        <button>
+          {captureOnly ? "Save draft for review" : "Submit report"}
+        </button>
       </fieldset>
       {submit.error && <p role="alert">{submit.error.message}</p>}
       <p role="status">{message}</p>
@@ -209,9 +217,11 @@ function ReportForm({
 function Workspace({
   pastor,
   permitted,
+  rights,
 }: {
   pastor: boolean;
   permitted: Team[];
+  rights: Rights;
 }) {
   const [choice, setChoice] = useState<Team | "Overview">(
     pastor ? "Overview" : permitted[0]
@@ -223,6 +233,7 @@ function Workspace({
     { retry: false, enabled: !!choice }
   );
   const utils = trpc.useUtils();
+  const approve = trpc.reports.approve.useMutation();
   if (!choice)
     return (
       <section className="report-card">
@@ -232,7 +243,8 @@ function Workspace({
         </p>
       </section>
     );
-  const rows = query.data ?? [];
+  const rows = (query.data ?? []).filter(r => r.status === "submitted");
+  const drafts = (query.data ?? []).filter(r => r.status === "draft");
   const reported = new Set(rows.map(r => r.team));
   const weeks = Array.from(new Set(rows.map(r => weekOf(r.day))));
   const finance = rows.filter(r => team || r.team === "Finance");
@@ -383,8 +395,45 @@ function Workspace({
           </section>
         </>
       )}
-      {team && (
+      {team && drafts.length > 0 && (
+        <section className="report-card">
+          <h2>Drafts awaiting submission</h2>
+          {drafts.map(r => (
+            <details key={r.key}>
+              <summary>
+                {r.day} · {r.activity}
+              </summary>
+              {Object.entries(r.details).map(([k, v]) => (
+                <p key={k}>
+                  {k}: {v}
+                </p>
+              ))}
+              <p>
+                Received {currency(r.received)} · Spent {currency(r.spent)}
+              </p>
+              <p>{r.needs}</p>
+              <p>{r.next}</p>
+              {(pastor || rights.roles[team] === "Leader") && (
+                <button
+                  disabled={approve.isPending}
+                  onClick={() =>
+                    approve.mutate(
+                      { key: r.key, team },
+                      { onSuccess: () => void utils.reports.list.invalidate() }
+                    )
+                  }
+                >
+                  Submit to pastors
+                </button>
+              )}
+            </details>
+          ))}
+          {approve.error && <p>{approve.error.message}</p>}
+        </section>
+      )}
+      {team && (pastor || rights.roles[team] !== "Viewer") && (
         <ReportForm
+          captureOnly={!pastor && rights.roles[team] === "Data capturer"}
           key={team}
           team={team}
           onSaved={day => {
@@ -402,6 +451,10 @@ export default function Reports() {
     enabled: !!auth.user,
     retry: false,
   });
+  const ownerSetup = trpc.teamAccess.setupAvailable.useQuery(undefined, {
+    enabled: !!auth.user,
+    retry: false,
+  });
   const path = window.location.pathname;
   const loginReady = Boolean(
     import.meta.env.VITE_OAUTH_PORTAL_URL && import.meta.env.VITE_APP_ID
@@ -411,10 +464,16 @@ export default function Reports() {
       <nav>
         <b>GHOP</b>
         <span>God’s House of Prayer Ministries</span>
+        <a href="/setup">Church setup</a>
         {auth.user && (
           <>
             <a href="/">Reports</a>
             <a href="/member">Member workspace</a>
+            {access.data &&
+              (access.data.pastor ||
+                Object.values(access.data.roles).includes("Leader")) && (
+                <a href="/permissions">Team permissions</a>
+              )}
             {access.data?.pastor && (
               <>
                 {auth.user.role === "admin" && (
@@ -437,7 +496,10 @@ export default function Reports() {
           </button>
         )}
       </nav>
-      {auth.loading ? (
+      {auth.user && <ClaimInvitation />}
+      {path === "/setup" || (!auth.loading && !auth.user && !loginReady) ? (
+        <Setup apply={ownerSetup.data === true} />
+      ) : auth.loading ? (
         <p>Loading workspace…</p>
       ) : !auth.user ? (
         <section className="report-card">
@@ -463,8 +525,14 @@ export default function Reports() {
         <Sermons />
       ) : access.data?.pastor && path === "/whatsapp-automation" ? (
         <WhatsAppAutomation />
+      ) : access.data && path === "/permissions" ? (
+        <TeamManagement rights={access.data} />
       ) : access.data ? (
-        <Workspace pastor={access.data.pastor} permitted={access.data.teams} />
+        <Workspace
+          rights={access.data}
+          pastor={access.data.pastor}
+          permitted={access.data.teams}
+        />
       ) : (
         <p>{access.error?.message ?? "Loading access…"}</p>
       )}
