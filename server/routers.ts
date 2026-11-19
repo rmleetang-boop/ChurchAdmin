@@ -1,3 +1,4 @@
+import { designation } from "./designatedAccounts";
 import { accountActions } from "./accountActions";
 import { profilesRouter } from "./profiles";
 import { passwordLogin } from "./passwordLogin";
@@ -15,6 +16,11 @@ import { transcribeAudio } from "./_core/voiceTranscription";
 import { pickSermonHighlights } from "../shared/sermonUtils";
 import { departmentInput, featureInput, FEATURE_STATUSES } from "../shared/departmentFeatures";
 import { addDepartmentFeature, createDepartmentWorkspace, listDepartmentWorkspaces, updateDepartmentFeature } from "./departmentWorkspace";
+
+const departmentAdmin = protectedProcedure.use(({ctx,next})=>{
+  if(ctx.user.role !== "admin" && designation(ctx.user) !== "Technical administrator") throw new TRPCError({code:"FORBIDDEN"});
+  return next();
+});
 
 const projectInput = z.object({
   title: z.string().min(2),
@@ -34,7 +40,7 @@ export const appRouter = router({
     ...accountActions,
     passwordLogin,
     ministryAddress: publicProcedure.query(() => process.env.GHOP_MINISTRY_ADDRESS?.trim() || null),
-    me: publicProcedure.query(opts => opts.ctx.user),
+    me: publicProcedure.query(({ctx}) => ctx.user ? {...ctx.user, designation:designation(ctx.user)} : null),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
@@ -73,12 +79,12 @@ export const appRouter = router({
     replyToPrayer: adminProcedure.input(z.object({ id: z.number().int().positive(), message: z.string().min(2).max(2000), markPraying: z.boolean().default(true) })).mutation(({ input, ctx }) => replyToPrayerRequest({ prayerRequestId: input.id, leaderId: ctx.user.id, leaderName: ctx.user.name, message: input.message, markPraying: input.markPraying })),
     testimonies: adminProcedure.query(() => listTestimonies()),
     departments: router({
-      workspace: adminProcedure.query(() => listDepartmentWorkspaces()),
-      createWithFeatures: adminProcedure.input(departmentInput).mutation(({ input, ctx }) => createDepartmentWorkspace(input, ctx.user.id)),
-      addFeature: adminProcedure.input(z.object({ departmentId: z.number().int().positive(), feature: featureInput })).mutation(({ input, ctx }) => addDepartmentFeature(input.departmentId, input.feature, ctx.user.id)),
-      updateFeature: adminProcedure.input(z.object({ id: z.number().int().positive(), status: z.enum(FEATURE_STATUSES), teamNotes: z.string().trim().max(2000) })).mutation(({ input }) => updateDepartmentFeature(input.id, input.status, input.teamNotes)),
-      list: adminProcedure.input(z.object({ branchId: z.number().int().positive().optional() }).optional()).query(({ input }) => listDepartments(input?.branchId)),
-      create: adminProcedure.input(z.object({ branchId: z.number().int().positive(), name: z.string().min(2), leadName: z.string().optional(), memberCount: z.number().int().nonnegative().default(0), color: z.string().default("#6958d9") })).mutation(({ input }) => createDepartment(input)),
+      workspace: departmentAdmin.query(() => listDepartmentWorkspaces()),
+      createWithFeatures: departmentAdmin.input(departmentInput).mutation(({ input, ctx }) => createDepartmentWorkspace(input, ctx.user.id)),
+      addFeature: departmentAdmin.input(z.object({ departmentId: z.number().int().positive(), feature: featureInput })).mutation(({ input, ctx }) => addDepartmentFeature(input.departmentId, input.feature, ctx.user.id)),
+      updateFeature: departmentAdmin.input(z.object({ id: z.number().int().positive(), status: z.enum(FEATURE_STATUSES), teamNotes: z.string().trim().max(2000) })).mutation(({ input }) => updateDepartmentFeature(input.id, input.status, input.teamNotes)),
+      list: departmentAdmin.input(z.object({ branchId: z.number().int().positive().optional() }).optional()).query(({ input }) => listDepartments(input?.branchId)),
+      create: departmentAdmin.input(z.object({ branchId: z.number().int().positive(), name: z.string().min(2), leadName: z.string().optional(), memberCount: z.number().int().nonnegative().default(0), color: z.string().default("#6958d9") })).mutation(({ input }) => createDepartment(input)),
     }),
   }),
   network: router({

@@ -477,6 +477,7 @@ export default function Reports() {
           <>
             <a href="/profile">My profile</a>
             <a href="/">Workspaces</a>
+            {auth.user.designation === "Technical administrator" && <a href="/departments">Technical administration</a>}
             <a href="/member">Member workspace</a>
             {access.data &&
               (access.data.pastor ||
@@ -511,7 +512,7 @@ export default function Reports() {
         <ProfileForm profile={profile.data} email={auth.user.email ?? ""} onSaved={async()=>{await profile.refetch();}}/>
       ) : path === "/setup" && (ownerSetup.data || access.data?.pastor) ? (
         <Setup apply={ownerSetup.data === true} />
-      ) : access.data?.pastor && path === "/records" ? <MemberLookup/> : path === "/member" ? (
+      ) : auth.user.designation === "Technical administrator" && ["/","/departments"].includes(path) ? <><h1>Technical administration</h1><DepartmentsPage scope="global" onScope={()=>{}}/></> : access.data?.pastor && path === "/records" ? <MemberLookup/> : path === "/member" ? (
         <MemberHome />
       ) : access.data?.pastor &&
         auth.user.role === "admin" &&

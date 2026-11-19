@@ -4,7 +4,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { sdk } from "./_core/sdk";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { publicProcedure } from "./_core/trpc";
-import { upsertUser } from "./db";
+import { getUserByOpenId, upsertUser } from "./db";
 import { database } from "./teamAccess";
 
 const unavailable = () => new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "Sign-in is unavailable. Please contact your ministry administrator." });
@@ -27,7 +27,8 @@ export const passwordLogin = publicProcedure
     const name = user.email;
     const maxAge = 8 * 60 * 60 * 1000;
     await database();
-    await upsertUser({ openId, email: user.email, name, loginMethod: "password", lastSignedIn: new Date() });
+    const existing = await getUserByOpenId(openId);
+    await upsertUser({ openId, email: user.email, name, ...(existing ? {} : {loginMethod: "password"}), lastSignedIn: new Date() });
     const token = await sdk.signSession({ openId, appId: "ghop-admin", name }, { expiresInMs: maxAge });
     ctx.res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(ctx.req), sameSite: "lax", maxAge });
     return true;

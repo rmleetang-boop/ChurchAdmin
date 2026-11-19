@@ -13,7 +13,8 @@ import {
   type Rights,
 } from "../shared/access";
 import { teams, type Team } from "../shared/reports";
-import { getDb } from "./db";
+import { designation } from "./designatedAccounts";
+import { getUserByOpenId, getDb } from "./db";
 import { protectedProcedure, router } from "./_core/trpc";
 
 export const forbidden = () => new TRPCError({ code: "FORBIDDEN" });
@@ -31,7 +32,8 @@ export async function rightsFor(openId: string): Promise<Rights> {
     .select()
     .from(ministryAccess)
     .where(eq(ministryAccess.openId, openId));
-  const rights: Rights = { pastor: false, roles: {} };
+  const designated = openId.startsWith("ghop:") ? designation(await getUserByOpenId(openId)) : undefined;
+  const rights: Rights = { pastor: designated === "Pastor Daniel" || designated === "Pastor Phiwe", roles: {} };
   for (const row of rows) {
     if ((principals.some(p => p === row.scope) || row.scope === "Pastor Pway") && row.role === "Principal")
       rights.pastor = true;

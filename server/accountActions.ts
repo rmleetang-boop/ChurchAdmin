@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { publicProcedure } from "./_core/trpc";
+import { approveMailbox } from "./designatedAccounts";
 import { emailInput } from "../shared/access";
 
 const password = z.string().min(8, "Use at least 8 characters.").max(1024);
@@ -88,7 +89,8 @@ export const accountActions = {
   confirmRegistration: publicProcedure
     .input(z.object({ email: emailInput, code }))
     .mutation(async ({ input }) => {
-      await verify(input.email, input.code, "signup");
+      const session = await verify(input.email, input.code, "signup");
+      await approveMailbox(input.email,session.user);
       return true;
     }),
   requestReset: publicProcedure
@@ -123,6 +125,7 @@ export const accountActions = {
           message:
             "Your password could not be updated. Request a new code and choose a different password.",
         });
+      await approveMailbox(input.email,session.user);
       return true;
     }),
 };

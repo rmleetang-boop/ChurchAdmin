@@ -8,7 +8,7 @@ import type {
 
 export function useDepartmentWorkspace() {
   const { user } = useAuth();
-  const canManage = user?.role === "admin";
+  const canManage = user?.role === "admin" || user?.designation === "Technical administrator";
   const query = trpc.admin.departments.workspace.useQuery(undefined, {
     enabled: canManage,
     retry: false,
