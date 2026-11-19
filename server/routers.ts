@@ -1,3 +1,4 @@
+import { accountActions } from "./accountActions";
 import { profilesRouter } from "./profiles";
 import { passwordLogin } from "./passwordLogin";
 import { TRPCError } from "@trpc/server";
@@ -30,6 +31,7 @@ export const appRouter = router({
   teamAccess: accessRouter,
   system: systemRouter,
   auth: router({
+    ...accountActions,
     passwordLogin,
     ministryAddress: publicProcedure.query(() => process.env.GHOP_MINISTRY_ADDRESS?.trim() || null),
     me: publicProcedure.query(opts => opts.ctx.user),
