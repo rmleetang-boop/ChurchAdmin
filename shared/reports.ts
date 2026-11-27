@@ -121,7 +121,7 @@ export const fields: Record<Team, string[]> = {
   ],
 };
 for (const team of teams)
-  fields[team] = ["Department leader", ...fields[team], "Comments"];
+  fields[team] = ["Department leader", ...fields[team].filter(f=>f !== "Service time"), "Service time", "Comments"];
 export const dateFields = new Set([
   "Distribution date",
   "Event date",
@@ -167,6 +167,7 @@ export const reportInput = z
     for (const [field, value] of Object.entries(r.details)) {
       if (
         !fields[r.team].includes(field) ||
+        (value && field === "Service time" && !/^([01]\d|2[0-3]):[0-5]\d$/.test(value)) ||
         (value &&
           dateFields.has(field) &&
           !reportDay.safeParse(value).success) ||

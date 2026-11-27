@@ -3,6 +3,7 @@ import type { Rights } from "@shared/access";
 import { useState, type FormEvent } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import ProfileForm, { MemberLookup } from "./Profile";
+import { ReportCalendar } from "./ReportCalendar";
 import Welcome from "./Welcome";
 import { ArrowUpRight, Banknote, CalendarCheck, Handshake, Sparkles, Music, HeartHandshake, Coins, Sprout, Users, Flower2, Radio, Coffee, Flame, BookOpen, Mic, LayoutDashboard } from "lucide-react";
 const teamIcons = { Finance: Banknote, Attendance: CalendarCheck, Usher: Handshake, Cleaning: Sparkles, Choir: Music, Charity: HeartHandshake, Fundraising: Coins, Youth: Sprout, Men: Users, Women: Flower2, Media: Radio, Hospitality: Coffee, Intercessor: Flame, "Sunday School": BookOpen, Moderation: Mic };
@@ -94,14 +95,21 @@ function FinanceBreakdown({
 }
 function ReportForm({
   team,
-  captureOnly,
+  captureOnly, day, onDay, existing,
   onSaved,
 }: {
   team: Team;
-  captureOnly: boolean;
+  captureOnly: boolean; day:string; onDay:(day:string)=>void; existing:{activity:string;day:string}[];
   onSaved: (day: string) => void;
 }) {
   const submit = trpc.reports.submit.useMutation();
+  const trpcUtils=trpc.useUtils();
+  const services=trpc.reports.services.useQuery(team,{retry:false});
+  const [service,setService]=useState("");
+  const [custom,setCustom]=useState("");
+  const activity = service==="custom" ? custom.trim() : service.slice(2);
+  const choices=Array.from(new Set([...(services.data??[]),"Sunday service","Prayer meeting","Bible study","Department meeting",...(team==="Choir"?["Choir rehearsal"]:team==="Sunday School"?["Sunday School class"]:[])]));
+  const duplicate=!!activity && existing.some(e=>e.day===day && e.activity.trim().toLowerCase()===activity.toLowerCase());
   const [key, setKey] = useState(() => crypto.randomUUID());
   const [message, setMessage] = useState("");
   const [details, setDetails] = useState<Record<string, string>>({});
@@ -117,16 +125,17 @@ function ReportForm({
         key,
         team,
         day: value("day"),
-        activity: value("activity"),
+        activity,
         details,
         needs: value("needs"),
         next: value("next"),
         received: cents("received"),
         spent: cents("spent"),
       });
+      void trpcUtils.reports.services.invalidate(team);
       onSaved(value("day"));
       form.reset();
-      setDetails({});
+      setDetails({});setService("");setCustom("");
       setKey(crypto.randomUUID());
       setMessage(
         captureOnly ? "Draft saved for leader review." : "Report submitted."
@@ -136,19 +145,22 @@ function ReportForm({
     }
   }
   return (
-    <form className="report-card" onSubmit={save}>
+    <form className="report-card" id="report-entry" onSubmit={save}>
       <h2>New {team} report</h2>
       <fieldset disabled={submit.isPending}>
         <div className="report-grid">
           <label>
             Report date
-            <input type="date" name="day" required defaultValue={today()} />
+            <input type="date" name="day" required value={day} onChange={e=>{if(e.target.value)onDay(e.target.value)}} />
           </label>
           <label>
             Service, meeting or activity
-            <input name="activity" maxLength={200} required />
+            <select id="report-service" value={service} onChange={e=>setService(e.target.value)} required><option value="">Select a service</option>{choices.map(name=><option key={name} value={"s:"+name}>{name}</option>)}<option value="custom">Other — enter a name</option></select>
           </label>
-          {fields[team].map(field => (
+          {service==="custom" && <label>Service or activity name<input maxLength={200} required value={custom} onChange={e=>setCustom(e.target.value)}/></label>}
+          <label>Service time<input type="time" value={details["Service time"]??""} onChange={e=>setDetails({...details,"Service time":e.target.value})}/></label>
+          {duplicate && <p role="status">A report already exists for this service on this date. You can still record a separate session.</p>}
+          {fields[team].filter(f=>!["Comments","Service time","Service or gathering"].includes(f)).map(field => (
             <label key={field}>
               {field}
               {moneyFields.has(field) && " (R)"}
@@ -209,6 +221,7 @@ function ReportForm({
             <textarea name="next" maxLength={2000} />
           </label>
         </div>
+        <label className="entry-notes">Report notepad<textarea rows={5} maxLength={1500} placeholder="Record observations, decisions or follow-up details…" value={details.Comments??""} onChange={e=>setDetails({...details,Comments:e.target.value})}/><small>Saved with this report · {(details.Comments??"").length}/1500</small></label>
         <button>
           {captureOnly ? "Save draft for review" : "Submit report"}
         </button>
@@ -228,7 +241,8 @@ function Workspace({
   rights: Rights;
 }) {
   const [choice, setChoice] = useState<Team | "Overview">();
-  const [month, setMonth] = useState(today().slice(0, 7));
+  const [day,setDay]=useState(today);
+  const month=day.slice(0,7);
   const team = choice === "Overview" ? undefined : choice;
   const query = trpc.reports.list.useQuery(
     { month, team },
@@ -280,12 +294,13 @@ function Workspace({
             required
             value={month}
             onChange={e => {
-              if (e.target.value) setMonth(e.target.value);
+              if (e.target.value) setDay(e.target.value+"-01");
             }}
           />
         </label>
       </header>
       <h1>{team ? team + " department" : "Pastoral dashboard"}</h1>
+      {team && <ReportCalendar day={day} today={today()} entries={query.data??[]} canWrite={pastor||rights.roles[team]!=="Viewer"} onDay={setDay} loading={query.isLoading} failed={query.isError}/>}
       {query.isLoading ? (
         <p>Loading reports…</p>
       ) : query.isError ? (
@@ -440,12 +455,12 @@ function Workspace({
         </section>
       )}
       {team && (pastor || rights.roles[team] !== "Viewer") && (
-        <ReportForm
+        <ReportForm day={day} onDay={setDay} existing={query.data??[]}
           captureOnly={!pastor && rights.roles[team] === "Data capturer"}
           key={team}
           team={team}
           onSaved={day => {
-            setMonth(day.slice(0, 7));
+            setDay(day);
             void utils.reports.list.invalidate();
           }}
         />

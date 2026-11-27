@@ -21,6 +21,13 @@ export const reportsRouter = router({
       teams: teams.filter(t => rights.pastor || rights.roles[t]),
     };
   }),
+  services: protectedProcedure.input(z.enum(teams)).query(async ({ctx,input:team})=>{
+    const rights=await rightsFor(ctx.user.openId);
+    if(!rights.pastor && !rights.roles[team]) throw forbidden();
+    const rows=await (await database()).selectDistinct({activity:ministryReports.activity}).from(ministryReports)
+      .where(eq(ministryReports.team,team)).orderBy(ministryReports.activity).limit(200);
+    return rows.map(row=>row.activity);
+  }),
   approve: protectedProcedure
     .input(z.object({ key: z.string().uuid(), team: z.enum(teams) }))
     .mutation(async ({ ctx, input }) => {
