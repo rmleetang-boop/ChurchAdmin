@@ -240,12 +240,14 @@ function Workspace({
   permitted: Team[];
   rights: Rights;
 }) {
-  const [choice, setChoice] = useState<Team | "Overview">();
+  const [choice, setChoice] = useState<Team | "Overview" | "Integrated">();
+  const [tab,setTab]=useState<"dashboard"|"entry">("dashboard");
+  function navigate(next: typeof choice) { setChoice(next); setTab("dashboard"); }
   const [day,setDay]=useState(today);
   const month=day.slice(0,7);
-  const team = choice === "Overview" ? undefined : choice;
+  const team = choice === "Overview" || choice === "Integrated" ? undefined : choice;
   const query = trpc.reports.list.useQuery(
-    { month, team },
+    { month, team, combined: choice === "Integrated" },
     { retry: false, enabled: !!choice }
   );
   const utils = trpc.useUtils();
@@ -263,25 +265,27 @@ function Workspace({
     <h1>Your workspace</h1><p>Select a department to open its reports.</p>
     <div className="department-tiles">
       {pastor && <button className="pastoral-tile" onClick={()=>setChoice("Overview")}><LayoutDashboard/><span>Pastoral dashboard<small>Church-wide reports</small></span><ArrowUpRight/></button>}
-      {permitted.map(t=>{const Icon=teamIcons[t];return <button key={t} onClick={()=>setChoice(t)}><Icon/><span>{t}<small>{pastor?"Principal administrator":rights.roles[t]}</small></span><ArrowUpRight/></button>})}
+      {!pastor && permitted.length>1 && <button className="pastoral-tile" onClick={()=>navigate("Integrated")}><LayoutDashboard/><span>Integrated dashboard<small>Compare accessible departments</small></span><ArrowUpRight/></button>}
+      {permitted.map(t=>{const Icon=teamIcons[t];return <button key={t} onClick={()=>navigate(t)}><Icon/><span>{t}<small>{pastor?"Principal administrator":rights.roles[t]??"Shared dashboard · Read only"}</small></span><ArrowUpRight/></button>})}
     </div></section>;
   const rows = (query.data ?? []).filter(r => r.status === "submitted");
   const drafts = (query.data ?? []).filter(r => r.status === "draft");
   const reported = new Set(rows.map(r => r.team));
   const weeks = Array.from(new Set(rows.map(r => weekOf(r.day))));
+  const canWrite = !!team && (pastor || rights.roles[team]==="Leader" || rights.roles[team]==="Data capturer");
   const finance = rows.filter(r => team || r.team === "Finance");
   const received = finance.reduce((sum, r) => sum + r.received, 0),
     spent = finance.reduce((sum, r) => sum + r.spent, 0);
   return (
     <>
-      <header className="report-tools"><button onClick={()=>setChoice(undefined)}>All workspaces</button>
+      <header className="report-tools"><button onClick={()=>navigate(undefined)}>All workspaces</button>
         <label>
           Workspace
           <select
             value={choice}
-            onChange={e => setChoice(e.target.value as typeof choice)}
+            onChange={e => navigate(e.target.value as typeof choice)}
           >
-            {pastor && <option>Overview</option>}
+            {pastor && <option>Overview</option>}{!pastor && permitted.length>1 && <option>Integrated</option>}
             {permitted.map(t => (
               <option key={t}>{t}</option>
             ))}
@@ -299,15 +303,21 @@ function Workspace({
           />
         </label>
       </header>
-      <h1>{team ? team + " department" : "Pastoral dashboard"}</h1>
-      {team && <ReportCalendar day={day} today={today()} entries={query.data??[]} canWrite={pastor||rights.roles[team]!=="Viewer"} onDay={setDay} loading={query.isLoading} failed={query.isError}/>}
+      <h1>{team ? team + " department" : choice === "Integrated" ? "Integrated dashboard" : "Pastoral dashboard"}</h1>
+      {team && <div className="report-tabs"><button aria-pressed={tab==="dashboard"} onClick={()=>setTab("dashboard")}>Reporting dashboard</button>{canWrite && <button aria-pressed={tab==="entry"} onClick={()=>setTab("entry")}>Data entry</button>}{!rights.roles[team] && !pastor && <small>Shared dashboard · Read only</small>}</div>}
+      {tab==="entry" && canWrite && <ReportCalendar day={day} today={today()} entries={query.data??[]} canWrite onDay={setDay} loading={query.isLoading} failed={query.isError}/>}
+      {tab==="dashboard" && (<>
       {query.isLoading ? (
         <p>Loading reports…</p>
       ) : query.isError ? (
         <p role="alert">{query.error.message}</p>
       ) : (
         <>
-          <div className="report-kpis">
+          {choice==="Integrated" && <section className="report-card"><h2>Department comparison</h2><div className="report-table"><table><thead><tr>{["Department","Submitted","Received","Spent","Net"].map(h=><th key={h}>{h}</th>)}</tr></thead><tbody>{permitted.map(t=>{
+            const entries=rows.filter(r=>r.team===t), income=entries.reduce((n,r)=>n+r.received,0), expenses=entries.reduce((n,r)=>n+r.spent,0);
+            return <tr key={t}><th><button onClick={()=>navigate(t)}>{t}</button></th><td>{entries.length}</td><td>{currency(income)}</td><td>{currency(expenses)}</td><td>{currency(income-expenses)}</td></tr>;
+          })}</tbody></table></div></section>}
+          {choice!=="Integrated" && <div className="report-kpis">
             {(!team || fields[team].includes("Children present")) && (
               <div>
                 <small>Attendance recorded</small>
@@ -334,8 +344,13 @@ function Workspace({
               <small>Net movement</small>
               <strong>{currency(received - spent)}</strong>
             </div>
-          </div>
-          {!team && (
+            {team && fields[team].filter(f=>numberFields.has(f)||moneyFields.has(f)).map(f=>{
+              const values=rows.flatMap(r=>r.details[f] ? [Number(r.details[f])] : []);
+              const total=values.reduce((a,b)=>a+b,0);
+              return <div key={f}><small>{f}</small><strong>{values.length ? (moneyFields.has(f)?currency(Math.round(total*100)):total) : "—"}</strong></div>;
+            })}
+          </div>}
+          {choice==="Overview" && (
             <section className="report-card">
               <h2>Awaiting a report</h2>
               <p>
@@ -366,17 +381,17 @@ function Workspace({
                 <section key={week}>
                   <h3>Week of {week}</h3>
                   <p>
-                    {entries.length} reports · Net{" "}
+                    {entries.length} reports {choice !== "Integrated" && <>· Net{" "}
                     {currency(
                       money.reduce((sum, r) => sum + r.received - r.spent, 0)
-                    )}
-                    {(!team ||
+                    )}</>}
+                    {choice !== "Integrated" && (!team ||
                       ["Attendance", "Usher", "Sunday School"].includes(
                         team
                       )) &&
                       " · Attendances recorded: " + attendance}
                   </p>
-                  {(!team || team === "Finance") && (
+                  {choice !== "Integrated" && (!team || team === "Finance") && (
                     <FinanceBreakdown entries={money} />
                   )}
                   {entries.map(r => (
@@ -418,6 +433,7 @@ function Workspace({
           </section>
         </>
       )}
+      </>)}
       {team && drafts.length > 0 && (
         <section className="report-card">
           <h2>Drafts awaiting submission</h2>
@@ -454,13 +470,14 @@ function Workspace({
           {approve.error && <p>{approve.error.message}</p>}
         </section>
       )}
-      {team && (pastor || rights.roles[team] !== "Viewer") && (
+      {team && canWrite && tab==="entry" && (
         <ReportForm day={day} onDay={setDay} existing={query.data??[]}
           captureOnly={!pastor && rights.roles[team] === "Data capturer"}
           key={team}
           team={team}
           onSaved={day => {
             setDay(day);
+            if (pastor || rights.roles[team]==="Leader") setTab("dashboard");
             void utils.reports.list.invalidate();
           }}
         />

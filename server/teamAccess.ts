@@ -2,7 +2,7 @@ import { randomBytes, randomUUID, createHash } from "node:crypto";
 import { TRPCError } from "@trpc/server";
 import { and, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
-import { ministryAccess } from "../drizzle/schema";
+import { ministryAccess, reportShares } from "../drizzle/schema";
 import {
   assignment,
   canDelegate,
@@ -26,6 +26,9 @@ export async function database() {
       message: "The church database connection is pending.",
     });
   return db;
+}
+export async function dashboardGrants() {
+  return (await database()).select().from(reportShares);
 }
 export async function rightsFor(openId: string): Promise<Rights> {
   const rows = await (await database())

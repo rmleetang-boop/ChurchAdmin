@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import ReportSharing from "./ReportSharing";
 import { trpc } from "@/lib/trpc";
 import {
   principals,
@@ -268,6 +269,7 @@ export function TeamManagement({ rights }: { rights: Rights }) {
   return (
     <>
       <h1>{rights.pastor ? "Church permissions" : "Department permissions"}</h1>
+      {rights.pastor && <ReportSharing/>}
       <section className="report-card">
         <GrantForm
           allowed={allowed}

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { canDelegate, setupPlan } from "../shared/access";
 import * as access from "./teamAccess";
 import { appRouter } from "./routers";
@@ -10,6 +10,7 @@ function caller(openId: string, role: "user" | "admin" = "user") {
     user: { id: 1, openId, name: "Pastor Daniel", role },
   } as TrpcContext);
 }
+beforeEach(() => { vi.spyOn(access,"dashboardGrants").mockResolvedValue([]); });
 afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllEnvs();
@@ -43,6 +44,14 @@ describe("GHOP report permissions and summaries", () => {
     await expect(
       appRouter.createCaller({ user: null } as TrpcContext).reports.access()
     ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  });
+  it("gives Finance the shared Charity view without delegation or submission rights", async () => {
+    vi.spyOn(access,"rightsFor").mockResolvedValue({pastor:false, roles:{Finance:"Leader"}});
+    vi.mocked(access.dashboardGrants).mockResolvedValue([{id:"example",source:"Charity",kind:"department",recipient:"Finance"}]);
+    const api = caller("finance").reports;
+    expect((await api.access()).teams).toEqual(["Finance","Charity"]);
+    await expect(api.share({source:"Charity",kind:"department",recipient:"Media"})).rejects.toMatchObject({code:"FORBIDDEN"});
+    await expect(api.submit({key:"0479bc9a-2b2e-42cb-a2fc-81f6c34b00f1",team:"Charity",day:"2026-11-01",activity:"Meeting",received:0,spent:0,needs:"",next:"",details:{}})).rejects.toMatchObject({code:"FORBIDDEN"});
   });
   it("restricts leader delegation and draft approval to the department", async () => {
     const leader = { pastor: false, roles: { Media: "Leader" as const } };

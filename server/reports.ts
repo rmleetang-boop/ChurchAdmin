@@ -1,7 +1,9 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, like, desc } from "drizzle-orm";
+import { and, eq, like, desc, inArray } from "drizzle-orm";
 import { z } from "zod";
-import { ministryReports } from "../drizzle/schema";
+import { randomUUID } from "node:crypto";
+import { shareInput, sharedDepartments } from "../shared/reportSharing";
+import { ministryReports, reportShares } from "../drizzle/schema";
 import {
   fields,
   teams,
@@ -9,17 +11,36 @@ import {
   monthInput,
   type Team,
 } from "../shared/reports";
-import { getDb } from "./db";
+
 import { protectedProcedure, router } from "./_core/trpc";
 
-import { database, rightsFor, forbidden } from "./teamAccess";
+import { database, rightsFor, forbidden, dashboardGrants } from "./teamAccess";
+async function visibility(user: { openId: string; email: string | null }) {
+  const rights = await rightsFor(user.openId);
+  const own = teams.filter(t => rights.roles[t]);
+  const grants = rights.pastor ? [] : await dashboardGrants();
+  const shared = sharedDepartments(grants, own, user.openId.startsWith("ghop:") ? user.email ?? undefined : undefined);
+  return { ...rights, teams: teams.filter(t => rights.pastor || own.includes(t) || shared.includes(t)), shared };
+}
+async function requireExecutive(openId: string) {
+  if (!(await rightsFor(openId)).pastor) throw forbidden();
+}
 export const reportsRouter = router({
   access: protectedProcedure.query(async ({ ctx }) => {
-    const rights = await rightsFor(ctx.user.openId);
-    return {
-      ...rights,
-      teams: teams.filter(t => rights.pastor || rights.roles[t]),
-    };
+    return visibility(ctx.user);
+  }),
+  shares: protectedProcedure.query(async ({ctx}) => {
+    await requireExecutive(ctx.user.openId);
+    return (await database()).select().from(reportShares);
+  }),
+  share: protectedProcedure.input(shareInput).mutation(async ({ctx,input}) => {
+    await requireExecutive(ctx.user.openId);
+    await (await database()).insert(reportShares).values({id:randomUUID(), ...input})
+      .onDuplicateKeyUpdate({set:{ recipient:input.recipient }});
+  }),
+  unshare: protectedProcedure.input(z.string().uuid()).mutation(async ({ctx,input}) => {
+    await requireExecutive(ctx.user.openId);
+    await (await database()).delete(reportShares).where(eq(reportShares.id,input));
   }),
   services: protectedProcedure.input(z.enum(teams)).query(async ({ctx,input:team})=>{
     const rights=await rightsFor(ctx.user.openId);
@@ -54,11 +75,13 @@ export const reportsRouter = router({
       return true;
     }),
   list: protectedProcedure
-    .input(z.object({ month: monthInput, team: z.enum(teams).optional() }))
+    .input(z.object({ month: monthInput, team: z.enum(teams).optional(), combined: z.boolean().optional() }))
     .query(async ({ ctx, input }) => {
-      const rights = await rightsFor(ctx.user.openId);
-      if (!rights.pastor && (!input.team || !rights.roles[input.team]))
+      const rights = await visibility(ctx.user);
+      if (input.team ? !rights.teams.includes(input.team) : !rights.pastor && !input.combined)
         throw forbidden();
+      if (!rights.teams.length) return [];
+      const draftsVisible = input.team && (rights.pastor || rights.roles[input.team]);
       const rows = await (
         await database()
       )
@@ -67,8 +90,8 @@ export const reportsRouter = router({
         .where(
           and(
             like(ministryReports.day, input.month + "-%"),
-            input.team ? undefined : eq(ministryReports.status, "submitted"),
-            input.team ? eq(ministryReports.team, input.team) : undefined
+            draftsVisible ? undefined : eq(ministryReports.status, "submitted"),
+            input.team ? eq(ministryReports.team, input.team) : inArray(ministryReports.team,rights.teams)
           )
         )
         .orderBy(desc(ministryReports.day), ministryReports.team);

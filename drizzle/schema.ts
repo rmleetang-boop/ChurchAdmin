@@ -231,3 +231,10 @@ export const memberProfiles = mysqlTable("member_profiles", {
   household: varchar("household", { length: 32 }).notNull(),
   householdSize: int("household_size"),
 });
+
+export const reportShares = mysqlTable("report_shares", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  source: varchar("source", { length: 40 }).notNull(),
+  kind: mysqlEnum("kind", ["department", "email"]).notNull(),
+  recipient: varchar("recipient", { length: 254 }).notNull(),
+}, t => [uniqueIndex("report_share_recipient").on(t.source, t.kind, t.recipient)]);
